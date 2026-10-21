@@ -467,7 +467,16 @@ function initDrive(){
 function vCfg(){
   return '<h2>Ciclo de estudos</h2><div class="f col"><label>Horas líquidas de estudo em um ciclo<input id="ch" type="number" step="0.5" min="1" max="100" value="'+S.cfg.horas+'"></label><label>% do tempo para matérias com dificuldade (o resto vai para as tranquilas)<input id="cp" type="number" min="1" max="99" value="'+S.cfg.pctDif+'"></label><button onclick="saveCfg()">Salvar</button></div><p class="vz">O ciclo só reinicia quando todas as matérias baterem a meta. Mudar as horas nunca apaga o que você já estudou.</p>'
    +'<h2>Google Drive</h2><p class="vz sy">'+esc(msgSync)+'</p><p class="vz" style="margin:0">ID do cliente embutido no app: '+esc(CID.slice(0,10))+'…</p><div class="f col"><div class="f"><button onclick="conectar()">Conectar ao Drive</button><button class="r" onclick="desconectar()">Desconectar</button></div></div><p class="vz">Salva o arquivo '+NOME+' no seu Drive a cada alteração. Funciona só com o app aberto por um endereço https://.</p>'
-   +'<h2>Backup manual</h2><button onclick="exp()">Exportar JSON</button> <label class="btn" style="display:inline-block;color:#fff">Importar<input type="file" accept=".json,application/json" hidden onchange="imp(event)"></label>';
+   +'<h2>Backup manual</h2><button onclick="exp()">Exportar JSON</button> <label class="btn" style="display:inline-block;color:#fff">Importar<input type="file" accept=".json,application/json" hidden onchange="imp(event)"></label>'
+   +'<h2>Começar do zero</h2><p class="vz">Apaga matérias, atividades, revisões, horas, gráficos e XP (mantém suas horas do ciclo e a conexão com o Drive). Baixa um backup antes. Se o Drive estiver conectado, o arquivo dele também é zerado, e os outros aparelhos recebem o app vazio ao sincronizar. PDFs já enviados ficam no Drive.</p><button class="r" onclick="zerar()">Zerar tudo</button>';
+}
+function zerar(){
+  if(!confirm('Apagar TODAS as matérias, atividades, revisões, horas e XP'+(tok?' e também zerar o arquivo do Drive':'')+'?\n\nUm backup será baixado antes.'))return;
+  if(!confirm('Tem certeza? Isso não pode ser desfeito.'))return;
+  exp();
+  const cfg=S.cfg,pastas=S.pastas;
+  S=clone(DEF);S.cfg=cfg;S.pastas=pastas;
+  tab='ciclo';save();render();toast('Tudo zerado. Pode começar!');
 }
 function saveCfg(){
   const h=+$('#ch').value,p=Math.round(+$('#cp').value);
