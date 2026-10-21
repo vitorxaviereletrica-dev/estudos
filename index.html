@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Estudos – Eng. Civil</title>
+<style>
+:root{--bg:#eef2f7;--card:#fff;--ink:#14243b;--mut:#5d6b80;--bl:#1d4e89;--am:#f2a900;--rd:#b3261e;--ln:#d3dbe6;--gr:#2e9e5b}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1b2d;--card:#18283f;--ink:#e8eef7;--mut:#9fb0c7;--bl:#6fa8e8;--ln:#2b3f5c;--rd:#ff8a80}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding-bottom:76px}
+header{background:#1d4e89;color:#fff;padding:12px 16px;position:sticky;top:0;z-index:5}
+.bar{height:8px;background:rgba(255,255,255,.25);border-radius:4px;margin-top:6px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--am)}
+#hd small{color:#cfe0f5}
+#tb:empty{display:none}
+#tb{margin-top:8px;background:var(--am);color:#14243b;border-radius:8px;padding:6px 10px;display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:.9rem}
+main{max-width:640px;margin:0 auto;padding:8px 14px}
+h2{font-size:1.05rem;margin:18px 0 8px}
+nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--card);border-top:1px solid var(--ln)}
+nav button{flex:1;padding:14px 2px;border:0;border-radius:0;background:none;color:var(--mut);font-size:.85rem}
+nav button.on{color:var(--bl);font-weight:700;box-shadow:inset 0 3px var(--am)}
+.c{background:var(--card);border:1px solid var(--ln);border-radius:10px;padding:10px 12px;margin:8px 0;display:flex;justify-content:space-between;align-items:center;gap:10px}
+.c.col{flex-direction:column;align-items:flex-start;gap:6px}
+.c.ok{border-color:var(--gr);background:rgba(46,158,91,.13)}.c.ok b{color:var(--gr)}
+.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.dot{width:12px;height:12px;border-radius:50%;display:inline-block}
+.pb{height:8px;background:var(--ln);border-radius:4px;width:100%;overflow:hidden}
+.pb i{display:block;height:100%;background:var(--am)}.ok .pb i{background:var(--gr)}
+.f{display:flex;gap:8px;flex-wrap:wrap}.f.col{flex-direction:column}
+input,select,textarea{font:inherit;padding:10px;border:1px solid var(--ln);border-radius:8px;background:var(--card);color:var(--ink);width:100%}
+.f:not(.col) input{flex:1 1 160px;width:auto}.f:not(.col) select{width:auto}
+button{font:inherit;padding:10px 14px;border:0;border-radius:8px;background:var(--bl);color:#fff;cursor:pointer}
+button.s{padding:6px 10px;font-size:.85rem}button.r{background:var(--rd)}
+.btn{display:inline-block;padding:10px 14px;border-radius:8px;background:var(--bl);color:#fff;cursor:pointer}
+small,.vz{color:var(--mut)}.at{color:var(--rd);font-weight:700}
+.cm{white-space:pre-wrap;word-break:break-word}
+a{color:var(--bl)}
+label{display:flex;flex-direction:column;text-align:left;font-size:.85rem;color:var(--mut);gap:4px}
+.dn{max-width:270px;margin:6px auto;color:var(--ink)}.dn svg{width:100%;display:block}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
+.cal b{padding:9px 0;border-radius:8px;position:relative;font-weight:400;cursor:pointer;background:var(--card);border:1px solid var(--ln)}
+.cal b.hj{border-color:var(--am);font-weight:700}.cal b.sl{background:var(--bl);color:#fff}
+.cal u{position:absolute;left:50%;bottom:3px;width:6px;height:6px;margin-left:-3px;border-radius:50%;background:var(--am)}.cal u.ok{background:var(--gr)}
+.cal i{display:block}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:9;padding:14px}
+.md{background:var(--card);border-radius:14px;padding:18px;width:100%;max-width:400px;display:flex;flex-direction:column;gap:10px;max-height:90vh;overflow:auto}
+#toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--am);color:#14243b;font-weight:700;padding:10px 16px;border-radius:20px;display:none;z-index:40;text-align:center;max-width:92vw}
+</style>
+</head>
+<body>
+<header><div id="hd"></div><div id="tb"></div></header>
+<main id="app"></main>
+<nav id="nav"></nav>
+<div id="modal"></div>
+<div id="toast"></div>
+<script>
+const KEY='estudos_v1',BASE='estudos_base',NOME='controle-estudos-dados.json',GR='#2e9e5b';
+const DC=['#e4572e','#f08a24','#c8403a','#f5b041'],TC=['#2e86ab','#5b9bd5','#3a6ea5','#6fb3b8'];
+const DEF={materias:[],itens:[],agenda:[],estudo:{},bonus:{},timer:null,ciclo:1,xp:0,streak:0,ultimoDia:'',atualizado:0,cfg:{horas:10,pctDif:80}};
+const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,6);
+const clone=o=>JSON.parse(JSON.stringify(o));
+const pad=n=>String(n).padStart(2,'0');
+const fmtD=d=>d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate());
+const hoje=()=>fmtD(new Date());
+function addD(iso,n){const p=iso.split('-').map(Number);return fmtD(new Date(p[0],p[1]-1,p[2]+n))}
+const fb=iso=>iso.split('-').reverse().join('/');
+function hm(ms){const t=Math.round(ms/6e4),h=Math.floor(t/60),m=t%60;return h?h+'h'+(m?pad(m):''):m+'min'}
+function clk(ms){const s=Math.floor(ms/1000);return pad(Math.floor(s/3600))+':'+pad(Math.floor(s%3600/60))+':'+pad(s%60)}
+
+function norm(r){
+  const d=Object.assign(clone(DEF),r);d.cfg=Object.assign({},DEF.cfg,r.cfg);
+  ['materias','itens','agenda'].forEach(k=>{if(!Array.isArray(d[k]))d[k]=[]});
+  if(!d.estudo||typeof d.estudo!=='object')d.estudo={};
+  const ks=Object.keys(d.estudo);
+  if(ks.length&&ks.every(k=>/^\d{4}-\d{2}-\d{2}$/.test(k))){d.estudo=d.estudo[ks.sort().pop()]||{};d.bonus={}}
+  if(!d.bonus||typeof d.bonus!=='object')d.bonus={};
+  if(!d.timer||typeof d.timer.mid!=='string'||!(d.timer.st>0))d.timer=null;
+  d.ciclo=Math.max(1,parseInt(d.ciclo)||1);d.atualizado=+d.atualizado||0;
+  d.materias.forEach(m=>{if(m.dif!=='t')m.dif='d'});
+  const h=+d.cfg.horas;d.cfg.horas=h>0&&h<=100?h:10;
+  const p=+d.cfg.pctDif;d.cfg.pctDif=p>=1&&p<=99?p:80;
+  return d;
+}
+function load(){
+  try{const r=JSON.parse(localStorage.getItem(KEY));if(r&&Array.isArray(r.materias)&&Array.isArray(r.itens))return norm(r)}catch(e){}
+  return clone(DEF);
+}
+let S=load(),tab='ciclo',calM=hoje().slice(0,7),selD=hoje();
+let tok=null,fid=null,pronto=false,syncT=null,subindo=false,pend=false,msgSync='Drive: desconectado';
+function gravaLocal(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){alert('Não consegui salvar neste aparelho. Faça um backup em Config > Exportar.')}}
+function save(){S.atualizado=Date.now();gravaLocal();if(tok&&pronto){clearTimeout(syncT);syncT=setTimeout(subir,2000)}}
+const mat=id=>S.materias.find(m=>m.id===id);
+const nivelXP=()=>Math.floor(S.xp/100)+1;
+function toast(t){const e=$('#toast');e.textContent=t;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',3200)}
+function ganha(g){const a=nivelXP();S.xp+=g;const up=nivelXP()>a;if(up)fogos();return (g?'+'+g+' XP':'Tempo salvo')+(up?' · NÍVEL '+nivelXP()+'! 🎉':'')}
+function streak(){const h=hoje();if(S.ultimoDia===h)return;S.streak=S.ultimoDia===addD(h,-1)?S.streak+1:1;S.ultimoDia=h}
+function go(k){tab=k;render()}
+
+/* ---------- FOGOS ---------- */
+function fogos(){
+  if(!document.body||(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches))return;
+  const c=document.createElement('canvas');c.style.cssText='position:fixed;inset:0;pointer-events:none;z-index:30';
+  c.width=innerWidth;c.height=innerHeight;document.body.appendChild(c);
+  const x=c.getContext('2d');if(!x){c.remove();return}
+  const P=[],t0=performance.now();let n=0;
+  const burst=(cx,cy)=>{const h=Math.random()*360;for(let i=0;i<46;i++){const a=Math.PI*2*i/46,v=2+Math.random()*3.5;P.push({x:cx,y:cy,vx:Math.cos(a)*v,vy:Math.sin(a)*v,l:1,h:h+Math.random()*40})}};
+  burst(c.width*.5,c.height*.35);
+  (function f(t){
+    const e=t-t0;
+    if(n<4&&e>400*(n+1)){n++;burst(c.width*(.2+Math.random()*.6),c.height*(.15+Math.random()*.35))}
+    x.clearRect(0,0,c.width,c.height);
+    P.forEach(p=>{p.x+=p.vx;p.y+=p.vy;p.vy+=.05;p.vx*=.985;p.l-=.011;if(p.l>0){x.globalAlpha=p.l;x.fillStyle='hsl('+p.h+',100%,60%)';x.beginPath();x.arc(p.x,p.y,2.2,0,7);x.fill()}});
+    if(e<2200||P.some(p=>p.l>0))requestAnimationFrame(f);else c.remove();
+  })(t0);
+}
+
+/* ---------- CICLO ---------- */
+function plano(){
+  const a=S.materias.filter(m=>m.status==='andamento').sort((x,y)=>(x.dif==='d'?0:1)-(y.dif==='d'?0:1)||y.peso-x.peso);
+  const nd=a.filter(m=>m.dif==='d').length,nt=a.length-nd;
+  let pd=S.cfg.pctDif/100;if(!nd)pd=0;else if(!nt)pd=1;
+  const H=S.cfg.horas;
+  return {pd:pd,l:a.map(m=>({m:m,h:+(m.dif==='d'?H*pd/nd:H*(1-pd)/nt).toFixed(6)}))};
+}
+function est(id){let v=S.estudo[id]||0;if(S.timer&&S.timer.mid===id)v+=Date.now()-S.timer.st;return v}
+function metaCheck(m){
+  const p=plano().l.find(x=>x.m.id===m.id);if(!p)return '';
+  const k=S.ciclo+':'+m.id;
+  if(est(m.id)>=p.h*36e5&&!S.bonus[k]){S.bonus[k]=1;fogos();return m.nome+': meta do ciclo batida! '+ganha(20*m.peso)}
+  return '';
+}
+function fechaCiclo(){
+  const P=plano().l;
+  if(!P.length||!P.every(p=>(S.estudo[p.m.id]||0)>=p.h*36e5))return '';
+  const n=S.ciclo;S.ciclo++;S.estudo={};fogos();
+  return 'Ciclo '+n+' concluído! 🏆 '+ganha(50);
+}
+function cardM(p,col){
+  const m=p.m,meta=p.h*36e5,e=est(m.id),ok=e>=meta,pc=Math.min(100,Math.round(e/meta*100)),run=S.timer&&S.timer.mid===m.id;
+  return '<div class="c col'+(ok?' ok':'')+'"><div class="row"><span class="dot" style="background:'+col+'"></span><b>'+esc(m.nome)+'</b><small>'+(m.dif==='d'?'🔥 dificuldade':'😌 tranquilo')+' · peso '+m.peso+'</small></div><div class="pb"><i style="width:'+pc+'%"></i></div><small>'+(ok?'✔ Estudado! ':'')+hm(e)+' de '+hm(meta)+(run?' · ⏱ estudando agora':'')+'</small><span>'+(run?'':'<button class="s" onclick="iniciar(\''+m.id+'\')">▶ Estudar</button> ')+'<button class="s" onclick="agendar(\''+m.id+'\')">📅 Agendar revisão</button></span></div>';
+}
+function vCiclo(){
+  const P=plano();
+  if(!P.l.length)return '<p class="vz">Cadastre suas matérias na aba <b>Matérias</b>, informando o nível de dificuldade de cada uma.</p>';
+  const H=S.cfg.horas;let di=0,ti=0,cum=0,svg='';const cols=[];
+  P.l.forEach(p=>{
+    const done=est(p.m.id)>=p.h*36e5,col=done?GR:(p.m.dif==='d'?DC[di++%DC.length]:TC[ti++%TC.length]);
+    cols.push(col);const pc=p.h/H*100,d=Math.max(pc-.6,.1);
+    svg+='<circle r="15.915" cx="21" cy="21" fill="none" stroke="'+col+'" stroke-width="6" stroke-dasharray="'+d+' '+(100-d)+'" stroke-dashoffset="'+(25-cum)+'"/>';
+    if(pc>=7){const a=(cum+pc/2)/100*Math.PI*2;svg+='<text x="'+(21+15.915*Math.sin(a)).toFixed(2)+'" y="'+(21-15.915*Math.cos(a)).toFixed(2)+'" text-anchor="middle" dominant-baseline="central" font-size="3" font-weight="700" fill="#fff">'+esc(p.m.nome.trim().slice(0,3).toUpperCase())+'</text>'}
+    cum+=pc;
+  });
+  const txt='<text x="21" y="21" text-anchor="middle" font-size="7" font-weight="700" fill="currentColor">'+(+H.toFixed(1))+'h</text><text x="21" y="26.5" text-anchor="middle" font-size="2.5" fill="currentColor">líquidas no ciclo</text>';
+  return '<div class="dn"><svg viewBox="0 0 42 42">'+svg+txt+'</svg></div><p class="vz" style="text-align:center;margin:0">Ciclo nº '+S.ciclo+' · dificuldade '+Math.round(P.pd*100)+'% · tranquilo '+Math.round(100-P.pd*100)+'% · verde = meta batida</p><h2>Matérias do ciclo</h2>'+P.l.map((p,i)=>cardM(p,cols[i])).join('');
+}
+
+/* ---------- CRONÔMETRO ---------- */
+function iniciar(id){
+  if(S.timer)parar();
+  S.timer={mid:id,st:Date.now()};save();render();
+}
+function parar(){
+  if(!S.timer)return;
+  const m=mat(S.timer.mid),ms=[];let e=Date.now()-S.timer.st;
+  if(e>4*36e5&&!confirm('O cronômetro ficou ligado por '+hm(e)+'. Salvar esse tempo todo?'))e=0;
+  S.timer=null;
+  if(m&&e>=1000){S.estudo[m.id]=(S.estudo[m.id]||0)+e;if(e>=6e4)streak();ms.push(ganha(Math.floor(e/6e5)*m.peso),metaCheck(m))}
+  ms.push(fechaCiclo());
+  save();render();const t=ms.filter(Boolean).join(' · ');if(t)toast(t);
+}
+function tbar(){
+  if(!S.timer)return '';const m=mat(S.timer.mid);if(!m)return '';
+  return '<span>⏱ <b>'+esc(m.nome)+'</b> <span id="tv">'+clk(Date.now()-S.timer.st)+'</span></span><button class="s r" onclick="parar()">Parar e salvar</button>';
+}
+function tick(){
+  if(!S.timer)return;
+  const m=mat(S.timer.mid);if(!m){S.timer=null;save();render();return}
+  const tv=$('#tv');if(tv)tv.textContent=clk(Date.now()-S.timer.st);
+  const msg=metaCheck(m);if(msg){save();render();toast(msg)}
+}
+setInterval(tick,1000);
+
+/* ---------- AGENDA ---------- */
+function agendar(mid){
+  const a=S.materias.filter(m=>m.status==='andamento');
+  if(!mid&&!a.length){toast('Cadastre uma matéria primeiro');return}
+  $('#modal').innerHTML='<div class="ov"><div class="md"><b>Agendar revisão</b>'+(mid?'<small>'+esc(mat(mid).nome)+'</small><input type="hidden" id="gm" value="'+mid+'">':'<select id="gm">'+a.map(m=>'<option value="'+m.id+'">'+esc(m.nome)+'</option>').join('')+'</select>')+'<label>Dia<input type="date" id="gd" value="'+addD(hoje(),1)+'"></label><label>Horário (opcional)<input type="time" id="gh"></label><label>Duração (minutos) – conta nas horas da matéria<input type="number" id="gt" value="30" min="5" max="600"></label><label>O que revisar (opcional)<textarea id="gc" rows="3" maxlength="500" placeholder="Ex.: refazer questões 4 e 7, revisar fórmula de momento fletor"></textarea></label><button onclick="salvAg()">Salvar</button><button class="s r" onclick="fechaM()">Cancelar</button></div></div>';
+}
+function fechaM(){$('#modal').innerHTML=''}
+function salvAg(){
+  const d=$('#gd').value,t=Math.round(+$('#gt').value),mid=$('#gm').value;
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(d)){toast('Escolha o dia');return}
+  if(!(t>=5&&t<=600)){toast('Duração entre 5 e 600 min');return}
+  S.agenda.push({id:uid(),mid:mid,data:d,hora:$('#gh').value,min:t,com:$('#gc').value.trim().slice(0,500),feito:false});
+  selD=d;calM=d.slice(0,7);save();fechaM();render();toast('Revisão agendada para '+fb(d));
+}
+function feito(id){
+  const a=S.agenda.find(x=>x.id===id),m=a&&mat(a.mid);if(!a||!m||a.feito)return;
+  a.feito=true;S.estudo[m.id]=(S.estudo[m.id]||0)+a.min*6e4;streak();
+  const ms=[ganha(Math.floor(a.min/10)*m.peso),metaCheck(m),fechaCiclo()].filter(Boolean).join(' · ');
+  save();render();toast(ms);
+}
+function delAg(id){S.agenda=S.agenda.filter(a=>a.id!==id);save();render()}
+function mesNav(n){const p=calM.split('-').map(Number),d=new Date(p[0],p[1]-1+n,1);calM=d.getFullYear()+'-'+pad(d.getMonth()+1);render()}
+function selDia(i){selD=i;render()}
+function cardA(a){
+  const m=mat(a.mid);if(!m)return '';const late=!a.feito&&a.data<hoje();
+  return '<div class="c'+(a.feito?' ok':'')+'"><div><b>'+esc(m.nome)+'</b><br><small>'+(late?fb(a.data)+' · ':'')+(a.hora?a.hora+' · ':'')+a.min+' min'+(late?' · <span class="at">atrasada</span>':'')+'</small>'+(a.com?'<br><small class="cm">📝 '+esc(a.com)+'</small>':'')+'</div><span>'+(a.feito?'✔ ':'<button class="s" onclick="feito(\''+a.id+'\')">Concluir</button> ')+'<button class="s r" onclick="delAg(\''+a.id+'\')">✕</button></span></div>';
+}
+function vAgenda(){
+  const p=calM.split('-').map(Number),n=new Date(p[0],p[1],0).getDate(),off=new Date(p[0],p[1]-1,1).getDay();
+  let g=['D','S','T','Q','Q','S','S'].map(x=>'<small>'+x+'</small>').join('');
+  for(let i=0;i<off;i++)g+='<i></i>';
+  for(let d=1;d<=n;d++){
+    const iso=calM+'-'+pad(d),q=S.agenda.filter(a=>a.data===iso&&mat(a.mid));
+    g+='<b class="'+(iso===hoje()?'hj ':'')+(iso===selD?'sl':'')+'" onclick="selDia(\''+iso+'\')">'+d+(q.length?'<u class="'+(q.some(a=>!a.feito)?'':'ok')+'"></u>':'')+'</b>';
+  }
+  const late=S.agenda.filter(a=>!a.feito&&a.data<hoje()).sort((a,b)=>a.data.localeCompare(b.data));
+  const dia=S.agenda.filter(a=>a.data===selD).sort((a,b)=>(a.hora||'99').localeCompare(b.hora||'99'));
+  return '<div class="row" style="justify-content:space-between;margin-top:10px"><button class="s" onclick="mesNav(-1)">‹</button><b>'+MESES[p[1]-1]+' '+p[0]+'</b><button class="s" onclick="mesNav(1)">›</button></div><div class="cal" style="margin-top:8px">'+g+'</div>'
+   +(late.length?'<h2>Atrasadas</h2>'+late.map(cardA).join(''):'')
+   +'<h2>'+(selD===hoje()?'Hoje':fb(selD))+'</h2>'+(dia.map(cardA).join('')||'<p class="vz">Nenhuma revisão neste dia.</p>')
+   +'<button onclick="agendar()">+ Agendar revisão</button>';
+}
+
+/* ---------- MATÉRIAS ---------- */
+function vMat(){
+  const l=x=>S.materias.filter(m=>m.status===x).map(m=>'<div class="c"><div><b>'+esc(m.nome)+'</b><br><small>'+(m.dif==='d'?'🔥 dificuldade':'😌 tranquilo')+' · peso '+m.peso+'</small></div><span><button class="s" onclick="setDif(\''+m.id+'\')">'+(m.dif==='d'?'Já estou bem':'Estou com dificuldade')+'</button> <button class="s" onclick="setSt(\''+m.id+'\')">'+(x==='andamento'?'Concluir':'Reabrir')+'</button> <button class="s r" onclick="delMat(\''+m.id+'\')">✕</button></span></div>').join('')||'<p class="vz">Nenhuma.</p>';
+  return '<h2>Nova matéria</h2><div class="f"><input id="mn" placeholder="Nome da matéria"><select id="mp"><option value="1">Peso 1</option><option value="2">Peso 2</option></select><select id="md"><option value="d">🔥 Estou com dificuldade</option><option value="t">😌 Estou tranquilo</option></select><button onclick="addMat()">Adicionar</button></div><h2>Em andamento</h2>'+l('andamento')+'<h2>Concluídas</h2>'+l('concluida');
+}
+function addMat(){
+  const n=$('#mn').value.trim();if(!n){toast('Digite o nome da matéria');return}
+  S.materias.push({id:uid(),nome:n,peso:+$('#mp').value,dif:$('#md').value,status:'andamento'});save();render();
+}
+function setDif(id){const m=mat(id);m.dif=m.dif==='d'?'t':'d';save();render()}
+function setSt(id){
+  if(S.timer&&S.timer.mid===id)parar();
+  const m=mat(id);m.status=m.status==='andamento'?'concluida':'andamento';
+  const t=fechaCiclo();save();render();if(t)toast(t);
+}
+function delMat(id){
+  const n=S.itens.filter(i=>i.mid===id).length;
+  if(!confirm('Apagar esta matéria'+(n?' e suas '+n+' atividade(s)':'')+'?'))return;
+  if(S.timer&&S.timer.mid===id)S.timer=null;
+  S.materias=S.materias.filter(m=>m.id!==id);S.itens=S.itens.filter(i=>i.mid!==id);S.agenda=S.agenda.filter(a=>a.mid!==id);delete S.estudo[id];
+  const t=fechaCiclo();save();render();if(t)toast(t);
+}
+
+/* ---------- ACERVO ---------- */
+function vAcervo(){
+  if(!S.materias.length)return '<p class="vz">Cadastre uma matéria primeiro, na aba Matérias.</p>';
+  return '<h2>Nova atividade</h2><div class="f col"><select id="am">'+S.materias.map(m=>'<option value="'+m.id+'">'+esc(m.nome)+(m.status==='concluida'?' (concluída)':'')+'</option>').join('')+'</select><input id="at" placeholder="Título (ex.: Lista 3 – Integrais)"><input id="al" placeholder="Link do PDF no Drive (opcional)"><input id="af" placeholder="Questões que fiz (ex.: 1-10)"><input id="ar" placeholder="Questões para revisar (ex.: 4, 7)"><textarea id="ac" rows="2" placeholder="Comentários / o que aprendi"></textarea><button onclick="addItem()">Salvar no acervo</button></div><h2>Acervo</h2><input id="q" placeholder="Buscar no acervo..." oninput="lista()"><div id="lista"></div>';
+}
+function addItem(){
+  const t=$('#at').value.trim();if(!t){toast('Digite o título');return}
+  S.itens.push({id:uid(),mid:$('#am').value,titulo:t,link:$('#al').value.trim(),feitas:$('#af').value.trim(),rev:$('#ar').value.trim(),com:$('#ac').value.trim(),criado:hoje()});
+  const msg=ganha(5);save();render();toast(msg);
+}
+function lista(){
+  const q=($('#q').value||'').toLowerCase();
+  const r=S.itens.filter(i=>((i.titulo||'')+' '+(i.com||'')+' '+(i.rev||'')+' '+(i.feitas||'')+' '+(mat(i.mid)||{nome:''}).nome).toLowerCase().includes(q)).sort((a,b)=>(b.criado||'').localeCompare(a.criado||''));
+  $('#lista').innerHTML=r.map(i=>{
+    const m=mat(i.mid)||{nome:'?'};
+    const lk=/^https?:\/\//i.test(i.link||'')?' · <a href="'+esc(i.link)+'" target="_blank" rel="noopener">abrir PDF</a>':'';
+    return '<div class="c col"><b>'+esc(i.titulo)+'</b><small>'+esc(m.nome)+lk+'</small>'+(i.feitas?'<small>Fiz: '+esc(i.feitas)+'</small>':'')+(i.rev?'<small>Revisar: '+esc(i.rev)+'</small>':'')+(i.com?'<small class="cm">'+esc(i.com)+'</small>':'')+'<span><button class="s" onclick="edit(\''+i.id+'\')">Editar notas</button> <button class="s r" onclick="delItem(\''+i.id+'\')">✕</button></span></div>';
+  }).join('')||'<p class="vz">Nada por aqui ainda.</p>';
+}
+function edit(id){
+  const i=S.itens.find(x=>x.id===id);
+  const a=prompt('Questões para revisar:',i.rev||'');if(a===null)return;
+  const b=prompt('Comentários:',i.com||'');if(b===null)return;
+  i.rev=a.trim();i.com=b.trim();save();lista();
+}
+function delItem(id){if(!confirm('Apagar esta atividade?'))return;S.itens=S.itens.filter(i=>i.id!==id);save();render()}
+
+/* ---------- GOOGLE DRIVE ---------- */
+const cid=()=>localStorage.getItem('estudos_cid')||'';
+function setMsg(t){msgSync=t;document.querySelectorAll('.sy').forEach(e=>e.textContent=t)}
+function drv(url,opt){
+  opt=opt||{};opt.headers=Object.assign({Authorization:'Bearer '+tok},opt.headers||{});
+  return fetch(url,opt).then(r=>{
+    if(r.status===401){tok=null;pronto=false;setMsg('Drive: sessão expirou, toque em Conectar')}
+    if(!r.ok)throw new Error('HTTP '+r.status);
+    return r;
+  });
+}
+function conectar(auto){
+  const id=cid();
+  if(!id){toast('Cole o ID do cliente Google e toque em Salvar ID');return}
+  if(!window.google||!google.accounts){toast('O login do Google não carregou. Abra o app pelo endereço https:// (hospedado) e com internet.');return}
+  const tc=google.accounts.oauth2.initTokenClient({
+    client_id:id,scope:'https://www.googleapis.com/auth/drive.file',
+    callback:r=>{if(r.error){setMsg('Drive: não conectou ('+r.error+')');return}tok=r.access_token;localStorage.setItem('estudos_drive','1');puxar()},
+    error_callback:()=>{if(!auto)toast('Login cancelado ou bloqueado pelo navegador')}
+  });
+  tc.requestAccessToken({prompt:auto?'none':''});
+}
+function desconectar(){tok=null;fid=null;pronto=false;localStorage.removeItem('estudos_drive');setMsg('Drive: desconectado')}
+function saveCid(){localStorage.setItem('estudos_cid',$('#gid').value.trim());toast('ID salvo')}
+async function puxar(){
+  setMsg('Drive: sincronizando…');
+  try{
+    const q=encodeURIComponent("name='"+NOME+"' and trashed=false");
+    const l=await (await drv('https://www.googleapis.com/drive/v3/files?q='+q+'&fields=files(id)&pageSize=1')).json();
+    const base=+localStorage.getItem(BASE)||0;
+    if(!l.files||!l.files.length){fid=null;pronto=true;await subir();return}
+    fid=l.files[0].id;
+    const rem=await (await drv('https://www.googleapis.com/drive/v3/files/'+fid+'?alt=media')).json();
+    if(!rem||!Array.isArray(rem.materias)||!Array.isArray(rem.itens))throw new Error('arquivo do Drive inválido');
+    const ra=+rem.atualizado||0,rc=ra>base,lc=(S.atualizado||0)>base;
+    let usar=rc&&!lc;
+    if(rc&&lc)usar=confirm('O Drive e este aparelho têm alterações diferentes.\n\nOK = usar os dados do Drive (descarta os daqui)\nCancelar = manter os daqui (sobrescreve o Drive)');
+    if(usar){const t=S.timer;S=norm(rem);S.timer=t;gravaLocal();localStorage.setItem(BASE,String(ra));pronto=true;render();setMsg('Drive: dados carregados ✔');return}
+    pronto=true;
+    if(lc)await subir();else setMsg('Drive: sincronizado ✔');
+  }catch(e){if(tok)setMsg('Drive: erro ao sincronizar ('+e.message+')')}
+}
+async function subir(){
+  if(!tok||!pronto)return;
+  if(subindo){pend=true;return}
+  subindo=true;setMsg('Drive: salvando…');
+  const d=clone(S);d.timer=null;const body=JSON.stringify(d);
+  try{
+    if(!fid){
+      const b='estudosfronteira';
+      const r=await drv('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',{method:'POST',headers:{'Content-Type':'multipart/related; boundary='+b},body:'--'+b+'\r\nContent-Type: application/json\r\n\r\n'+JSON.stringify({name:NOME,mimeType:'application/json'})+'\r\n--'+b+'\r\nContent-Type: application/json\r\n\r\n'+body+'\r\n--'+b+'--'});
+      fid=(await r.json()).id;
+    }else await drv('https://www.googleapis.com/upload/drive/v3/files/'+fid+'?uploadType=media',{method:'PATCH',headers:{'Content-Type':'application/json'},body:body});
+    localStorage.setItem(BASE,String(d.atualizado));setMsg('Drive: sincronizado ✔');
+  }catch(e){if(tok)setMsg('Drive: falha ao salvar (tento de novo na próxima alteração)')}
+  subindo=false;if(pend){pend=false;subir()}
+}
+function initDrive(){
+  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&tok&&pronto)puxar()});
+  if(!/^https?:$/.test(location.protocol))return;
+  const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.async=true;
+  s.onload=()=>{if(cid()&&localStorage.getItem('estudos_drive')){setMsg('Drive: reconectando…');conectar(true)}};
+  document.head.appendChild(s);
+}
+
+/* ---------- CONFIG / BACKUP ---------- */
+function vCfg(){
+  return '<h2>Ciclo de estudos</h2><div class="f col"><label>Horas líquidas de estudo em um ciclo<input id="ch" type="number" step="0.5" min="1" max="100" value="'+S.cfg.horas+'"></label><label>% do tempo para matérias com dificuldade (o resto vai para as tranquilas)<input id="cp" type="number" min="1" max="99" value="'+S.cfg.pctDif+'"></label><button onclick="saveCfg()">Salvar</button></div><p class="vz">O ciclo só reinicia quando todas as matérias baterem a meta. Mudar as horas nunca apaga o que você já estudou.</p>'
+   +'<h2>Google Drive</h2><p class="vz sy">'+esc(msgSync)+'</p><div class="f col"><label>ID do cliente Google (criado no Google Cloud)<input id="gid" value="'+esc(cid())+'" placeholder="xxxx.apps.googleusercontent.com"></label><div class="f"><button onclick="saveCid()">Salvar ID</button><button onclick="conectar()">Conectar ao Drive</button><button class="r" onclick="desconectar()">Desconectar</button></div></div><p class="vz">Salva o arquivo '+NOME+' no seu Drive a cada alteração. Funciona só com o app aberto por um endereço https://.</p>'
+   +'<h2>Backup manual</h2><button onclick="exp()">Exportar JSON</button> <label class="btn" style="display:inline-block;color:#fff">Importar<input type="file" accept=".json,application/json" hidden onchange="imp(event)"></label>';
+}
+function saveCfg(){
+  const h=+$('#ch').value,p=Math.round(+$('#cp').value);
+  if(!(h>0&&h<=100)||!(p>=1&&p<=99)){toast('Horas entre 1 e 100 e porcentagem entre 1 e 99');return}
+  S.cfg.horas=h;S.cfg.pctDif=p;const t=fechaCiclo();save();render();toast(t||'Ciclo atualizado');
+}
+function exp(){
+  const b=new Blob([JSON.stringify(S,null,1)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='estudos-backup-'+hoje()+'.json';
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+function imp(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const d=JSON.parse(r.result);
+      if(!Array.isArray(d.materias)||!Array.isArray(d.itens))throw new Error();
+      if(!confirm('Substituir os dados atuais pelos do arquivo?'))return;
+      const t=S.timer;S=norm(d);S.timer=t;save();render();toast('Backup importado');
+    }catch(x){alert('Arquivo inválido.')}
+  };
+  r.readAsText(f);e.target.value='';
+}
+
+/* ---------- RENDER ---------- */
+function render(){
+  const h=hoje(),sq=(S.ultimoDia===h||S.ultimoDia===addD(h,-1))?S.streak:0;
+  $('#hd').innerHTML='<b>Nível '+nivelXP()+'</b> · '+S.xp+' XP · 🔥 '+sq+' dia(s) seguidos<div class="bar"><i style="width:'+(S.xp%100)+'%"></i></div><small class="sy">'+esc(msgSync)+'</small>';
+  $('#tb').innerHTML=tbar();
+  $('#nav').innerHTML=[['ciclo','Ciclo'],['agenda','Agenda'],['mat','Matérias'],['acervo','Acervo'],['cfg','Config']].map(a=>'<button class="'+(tab===a[0]?'on':'')+'" onclick="go(\''+a[0]+'\')">'+a[1]+'</button>').join('');
+  $('#app').innerHTML={ciclo:vCiclo,agenda:vAgenda,mat:vMat,acervo:vAcervo,cfg:vCfg}[tab]();
+  if(tab==='acervo'&&$('#lista'))lista();
+}
+render();initDrive();
+</script>
+</body>
+</html>
