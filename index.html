@@ -98,9 +98,14 @@ function load(){
   return clone(DEF);
 }
 let S=load(),tab='ciclo',calM=hoje().slice(0,7),selD=hoje();
-let tok=null,fid=null,pronto=false,syncT=null,subindo=false,pend=false,msgSync='Drive: desconectado';
+let tok=null,fid=null,pronto=false,syncT=null,subindo=false,pend=false,expira=0,sujo=false,conectando=false,ultTent=0,msgSync='Drive: desconectado';
+const SCOPE='https://www.googleapis.com/auth/drive.file',RECON='Drive: reconecta ao tocar em qualquer botão';
 function gravaLocal(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){alert('Não consegui salvar neste aparelho. Faça um backup em Config > Exportar.')}}
-function save(){S.atualizado=Date.now();gravaLocal();if(tok&&pronto){clearTimeout(syncT);syncT=setTimeout(subir,2000)}}
+function save(){
+  S.atualizado=Date.now();gravaLocal();
+  if(tok&&pronto){sujo=true;clearTimeout(syncT);syncT=setTimeout(subir,2000)}
+  else if(localStorage.getItem('estudos_drive')){sujo=true;setMsg(RECON)}
+}
 const mat=id=>S.materias.find(m=>m.id===id);
 const nivelXP=()=>Math.floor(S.xp/100)+1;
 function toast(t){const e=$('#toast');e.textContent=t;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',3200)}
@@ -374,25 +379,34 @@ function setMsg(t){msgSync=t;document.querySelectorAll('.sy').forEach(e=>e.textC
 function drv(url,opt){
   opt=opt||{};opt.headers=Object.assign({Authorization:'Bearer '+tok},opt.headers||{});
   return fetch(url,opt).then(r=>{
-    if(r.status===401){tok=null;pronto=false;setMsg('Drive: sessão expirou, toque em Conectar')}
+    if(r.status===401){tok=null;pronto=false;expira=0;setMsg(RECON)}
     if(!r.ok)throw new Error('HTTP '+r.status);
     return r;
   });
 }
-function conectar(auto){
-  const id=cid();
-  if(!id){toast('Cole o ID do cliente Google e toque em Salvar ID');return}
-  if(!window.google||!google.accounts){toast('O login do Google não carregou. Abra o app pelo endereço https:// (hospedado) e com internet.');return}
+function conectar(modo,troca){
+  if(!window.google||!google.accounts){if(modo==='manual')toast('O login do Google não carregou. Abra o app pelo endereço https:// (hospedado) e com internet.');return}
+  if(modo!=='manual'){if(conectando||Date.now()-ultTent<60000)return;ultTent=Date.now()}
+  if(troca){localStorage.removeItem('estudos_hint');fid=null;pronto=false}
+  conectando=true;setTimeout(()=>{conectando=false},20000);
+  const hint=localStorage.getItem('estudos_hint')||'';
   const tc=google.accounts.oauth2.initTokenClient({
-    client_id:id,scope:'https://www.googleapis.com/auth/drive.file',
-    callback:r=>{if(r.error){setMsg('Drive: não conectou ('+r.error+')');return}tok=r.access_token;localStorage.setItem('estudos_drive','1');puxar()},
-    error_callback:()=>{if(!auto)toast('Login cancelado ou bloqueado pelo navegador')}
+    client_id:cid(),scope:SCOPE,
+    callback:async r=>{
+      conectando=false;
+      if(r.error){setMsg(modo==='manual'?'Drive: não conectou ('+r.error+')':RECON);return}
+      tok=r.access_token;expira=Date.now()+(+r.expires_in||3600)*1000;localStorage.setItem('estudos_drive','1');
+      if(!hint){try{const u=await (await drv('https://www.googleapis.com/drive/v3/about?fields=user(emailAddress)')).json();if(u.user&&u.user.emailAddress)localStorage.setItem('estudos_hint',u.user.emailAddress)}catch(e){}}
+      puxar();
+    },
+    error_callback:()=>{conectando=false;if(modo==='manual')toast('Login cancelado ou bloqueado pelo navegador');else setMsg(RECON)}
   });
-  tc.requestAccessToken({prompt:auto?'none':'select_account'});
+  const ov={prompt:modo==='auto'?'none':(hint?'':'select_account')};if(hint)ov.hint=hint;
+  tc.requestAccessToken(ov);
 }
-function desconectar(){tok=null;fid=null;pronto=false;localStorage.removeItem('estudos_drive');setMsg('Drive: desconectado')}
-async function puxar(){
-  setMsg('Drive: sincronizando…');
+function desconectar(){tok=null;fid=null;pronto=false;sujo=false;expira=0;localStorage.removeItem('estudos_drive');localStorage.removeItem('estudos_hint');setMsg('Drive: desconectado')}
+async function puxar(quiet){
+  if(!quiet)setMsg('Drive: sincronizando…');
   try{
     const q=encodeURIComponent("name='"+NOME+"' and trashed=false");
     const l=await (await drv('https://www.googleapis.com/drive/v3/files?q='+q+'&fields=files(id)&pageSize=1')).json();
@@ -403,10 +417,10 @@ async function puxar(){
     if(!rem||!Array.isArray(rem.materias)||!Array.isArray(rem.itens))throw new Error('arquivo do Drive inválido');
     const ra=+rem.atualizado||0,rc=ra>base,lc=(S.atualizado||0)>base;
     let usar=rc&&!lc;
-    if(rc&&lc)usar=confirm('O Drive e este aparelho têm alterações diferentes.\n\nOK = usar os dados do Drive (descarta os daqui)\nCancelar = manter os daqui (sobrescreve o Drive)');
-    if(usar){const t=S.timer;S=norm(rem);S.timer=t;gravaLocal();localStorage.setItem(BASE,String(ra));pronto=true;render();setMsg('Drive: dados carregados ✔');return}
+    if(rc&&lc){if(quiet)return;usar=confirm('O Drive e este aparelho têm alterações diferentes.\n\nOK = usar os dados do Drive (descarta os daqui)\nCancelar = manter os daqui (sobrescreve o Drive)')}
+    if(usar){const t=S.timer;S=norm(rem);S.timer=t;sujo=false;gravaLocal();localStorage.setItem(BASE,String(ra));pronto=true;render();setMsg('Drive: dados carregados ✔');return}
     pronto=true;
-    if(lc)await subir();else setMsg('Drive: sincronizado ✔');
+    if(lc)await subir();else if(!quiet)setMsg('Drive: sincronizado ✔');
   }catch(e){if(tok)setMsg('Drive: erro ao sincronizar ('+e.message+')')}
 }
 async function subir(){
@@ -420,7 +434,7 @@ async function subir(){
       const r=await drv('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',{method:'POST',headers:{'Content-Type':'multipart/related; boundary='+b},body:'--'+b+'\r\nContent-Type: application/json\r\n\r\n'+JSON.stringify({name:NOME,mimeType:'application/json'})+'\r\n--'+b+'\r\nContent-Type: application/json\r\n\r\n'+body+'\r\n--'+b+'--'});
       fid=(await r.json()).id;
     }else await drv('https://www.googleapis.com/upload/drive/v3/files/'+fid+'?uploadType=media',{method:'PATCH',headers:{'Content-Type':'application/json'},body:body});
-    localStorage.setItem(BASE,String(d.atualizado));setMsg('Drive: sincronizado ✔');
+    localStorage.setItem(BASE,String(d.atualizado));sujo=S.atualizado>d.atualizado;setMsg('Drive: sincronizado ✔');
   }catch(e){if(tok)setMsg('Drive: falha ao salvar (tento de novo na próxima alteração)')}
   subindo=false;if(pend){pend=false;subir()}
 }
@@ -454,19 +468,33 @@ async function enviarPdf(file,m){
   const j=await r.json();if(!j.id)throw new Error('resposta sem ID');
   return {id:j.id,nome:file.name};
 }
+function tickSync(){
+  if(!tok||!pronto||sujo||subindo||document.visibilityState!=='visible'||Date.now()>expira-60000)return;
+  const t=document.activeElement&&document.activeElement.tagName;if(/^(INPUT|TEXTAREA|SELECT)$/.test(t||''))return;
+  puxar(true);
+}
 function initDrive(){
   localStorage.removeItem('estudos_cid');
-  document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&tok&&pronto)puxar()});
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState!=='visible')return;
+    if(tok&&pronto&&Date.now()<expira-60000)puxar(true);
+    else if(localStorage.getItem('estudos_drive'))conectar('auto');
+  });
+  document.addEventListener('pointerdown',()=>{
+    if(!localStorage.getItem('estudos_drive')||(tok&&Date.now()<expira-300000))return;
+    conectar('tap');
+  },true);
+  setInterval(tickSync,90000);
   if(!/^https?:$/.test(location.protocol))return;
   const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.async=true;
-  s.onload=()=>{if(cid()&&localStorage.getItem('estudos_drive')){setMsg('Drive: reconectando…');conectar(true)}};
+  s.onload=()=>{if(localStorage.getItem('estudos_drive')){setMsg('Drive: reconectando…');conectar('auto')}};
   document.head.appendChild(s);
 }
 
 /* ---------- CONFIG / BACKUP ---------- */
 function vCfg(){
   return '<h2>Ciclo de estudos</h2><div class="f col"><label>Horas líquidas de estudo em um ciclo<input id="ch" type="number" step="0.5" min="1" max="100" value="'+S.cfg.horas+'"></label><label>% do tempo para matérias com dificuldade (o resto vai para as tranquilas)<input id="cp" type="number" min="1" max="99" value="'+S.cfg.pctDif+'"></label><button onclick="saveCfg()">Salvar</button></div><p class="vz">O ciclo só reinicia quando todas as matérias baterem a meta. Mudar as horas nunca apaga o que você já estudou.</p>'
-   +'<h2>Google Drive</h2><p class="vz sy">'+esc(msgSync)+'</p><p class="vz" style="margin:0">ID do cliente embutido no app: '+esc(CID.slice(0,10))+'…</p><div class="f col"><div class="f"><button onclick="conectar()">Conectar ao Drive</button><button class="r" onclick="desconectar()">Desconectar</button></div></div><p class="vz">Salva o arquivo '+NOME+' no seu Drive a cada alteração. Funciona só com o app aberto por um endereço https://.</p>'
+   +'<h2>Google Drive</h2><p class="vz sy">'+esc(msgSync)+'</p><p class="vz" style="margin:0">ID do cliente embutido no app: '+esc(CID.slice(0,10))+'…</p><div class="f col"><div class="f"><button onclick="conectar(\'manual\')">Conectar ao Drive</button><button class="s" onclick="conectar(\'manual\',true)">Trocar de conta</button><button class="r" onclick="desconectar()">Desconectar</button></div></div><p class="vz">Salva o arquivo '+NOME+' no seu Drive a cada alteração. Funciona só com o app aberto por um endereço https://. O Google libera o acesso por 1 hora de cada vez: o app renova sozinho quando você toca em qualquer botão (uma janelinha pode piscar). Enquanto isso, as alterações ficam guardadas no aparelho e sobem na reconexão.</p>'
    +'<h2>Backup manual</h2><button onclick="exp()">Exportar JSON</button> <label class="btn" style="display:inline-block;color:#fff">Importar<input type="file" accept=".json,application/json" hidden onchange="imp(event)"></label>'
    +'<h2>Começar do zero</h2><p class="vz">Apaga matérias, atividades, revisões, horas, gráficos e XP (mantém suas horas do ciclo e a conexão com o Drive). Baixa um backup antes. Se o Drive estiver conectado, o arquivo dele também é zerado, e os outros aparelhos recebem o app vazio ao sincronizar. PDFs já enviados ficam no Drive.</p><button class="r" onclick="zerar()">Zerar tudo</button>';
 }
