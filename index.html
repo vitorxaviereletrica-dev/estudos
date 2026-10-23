@@ -6,7 +6,12 @@
 <title>Estudos – Eng. Civil</title>
 <style>
 :root{--bg:#eef2f7;--card:#fff;--ink:#14243b;--mut:#5d6b80;--bl:#1d4e89;--am:#f2a900;--rd:#b3261e;--ln:#d3dbe6;--gr:#2e9e5b}
-@media(prefers-color-scheme:dark){:root{--bg:#0f1b2d;--card:#18283f;--ink:#e8eef7;--mut:#9fb0c7;--bl:#6fa8e8;--ln:#2b3f5c;--rd:#ff8a80}}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#0f1b2d;--card:#18283f;--ink:#e8eef7;--mut:#9fb0c7;--bl:#6fa8e8;--ln:#2b3f5c;--rd:#ff8a80}
+  button{color:#0f1b2d}
+  button.r{background:#c4453c;color:#fff}
+  .c.ok b{color:#7ed99a}
+}
 *{box-sizing:border-box}
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.4 system-ui,-apple-system,Segoe UI,Roboto,sans-serif;padding-bottom:76px}
 header{background:#1d4e89;color:#fff;padding:12px 16px;position:sticky;top:0;z-index:5}
@@ -14,11 +19,12 @@ header{background:#1d4e89;color:#fff;padding:12px 16px;position:sticky;top:0;z-i
 .bar i{display:block;height:100%;background:var(--am)}
 #hd small{color:#cfe0f5}
 #tb:empty{display:none}
-#tb{margin-top:8px;background:var(--am);color:#14243b;border-radius:8px;padding:6px 10px;display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:.9rem}
+#tb{margin-top:8px;background:var(--am);color:#14243b;border-radius:8px;padding:6px 10px;display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:.9rem;flex-wrap:wrap}
+#tb button{background:#14243b;color:#fff}
 main{max-width:640px;margin:0 auto;padding:8px 14px}
 h2{font-size:1.05rem;margin:18px 0 8px}
 nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--card);border-top:1px solid var(--ln)}
-nav button{flex:1;padding:14px 2px;border:0;border-radius:0;background:none;color:var(--mut);font-size:.76rem}
+nav button{flex:1;padding:14px 2px;border:0;border-radius:0;background:none;color:var(--mut);font-size:.7rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 nav button.on{color:var(--bl);font-weight:700;box-shadow:inset 0 3px var(--am)}
 .c{background:var(--card);border:1px solid var(--ln);border-radius:10px;padding:10px 12px;margin:8px 0;display:flex;justify-content:space-between;align-items:center;gap:10px}
 .c.col{flex-direction:column;align-items:flex-start;gap:6px}
@@ -26,7 +32,7 @@ nav button.on{color:var(--bl);font-weight:700;box-shadow:inset 0 3px var(--am)}
 .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .dot{width:12px;height:12px;border-radius:50%;display:inline-block}
 .pb{height:8px;background:var(--ln);border-radius:4px;width:100%;overflow:hidden}
-.pb i{display:block;height:100%;background:var(--am)}.ok .pb i{background:var(--gr)}
+.pb i{display:block;height:100%;background:var(--am);transition:width .4s}.ok .pb i{background:var(--gr)}
 .f{display:flex;gap:8px;flex-wrap:wrap}.f.col{flex-direction:column}
 input,select,textarea{font:inherit;padding:10px;border:1px solid var(--ln);border-radius:8px;background:var(--card);color:var(--ink);width:100%}
 .f:not(.col) input{flex:1 1 160px;width:auto}.f:not(.col) select{width:auto}
@@ -37,10 +43,13 @@ small,.vz{color:var(--mut)}.at{color:var(--rd);font-weight:700}
 .cm{white-space:pre-wrap;word-break:break-word}
 .chips{display:flex;flex-wrap:wrap;gap:6px;justify-content:flex-end;margin:6px 0 0}
 .chip{font-size:.72rem;padding:1px 8px;border-radius:12px;border:2px solid;background:var(--card);max-width:48%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip.urg{border-color:var(--rd)!important;color:var(--rd);font-weight:700}
+.chip.urg::before{content:'⚠ '}
 .gr{width:100%;display:block;color:var(--ink)}
 a{color:var(--bl)}
 label{display:flex;flex-direction:column;text-align:left;font-size:.85rem;color:var(--mut);gap:4px}
 .dn{max-width:270px;margin:6px auto;color:var(--ink)}.dn svg{width:100%;display:block}
+@media(min-width:520px){.dn{max-width:340px;margin:10px auto}}
 .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
 .cal b{padding:9px 0;border-radius:8px;position:relative;font-weight:400;cursor:pointer;background:var(--card);border:1px solid var(--ln)}
 .cal b.hj{border-color:var(--am);font-weight:700}.cal b.sl{background:var(--bl);color:#fff}
@@ -48,6 +57,7 @@ label{display:flex;flex-direction:column;text-align:left;font-size:.85rem;color:
 .cal i{display:block}
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:9;padding:14px}
 .md{background:var(--card);border-radius:14px;padding:18px;width:100%;max-width:400px;display:flex;flex-direction:column;gap:10px;max-height:90vh;overflow:auto}
+.acts{display:flex;flex-wrap:wrap;gap:6px}
 #toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--am);color:#14243b;font-weight:700;padding:10px 16px;border-radius:20px;display:none;z-index:40;text-align:center;max-width:92vw}
 </style>
 </head>
@@ -60,7 +70,7 @@ label{display:flex;flex-direction:column;text-align:left;font-size:.85rem;color:
 <script>
 const KEY='estudos_v1',BASE='estudos_base',NOME='controle-estudos-dados.json',GR='#2e9e5b';
 const DC=['#e4572e','#f08a24','#c8403a','#f5b041'],TC=['#2e86ab','#5b9bd5','#3a6ea5','#6fb3b8'];
-const DEF={materias:[],itens:[],agenda:[],estudo:{},hist:{},pastas:{},bonus:{},timer:null,ciclo:1,xp:0,streak:0,ultimoDia:'',atualizado:0,cfg:{horas:10,pctDif:80}};
+const DEF={materias:[],itens:[],agenda:[],estudo:{},hist:{},pastas:{},bonus:{},timer:null,ciclo:1,cicloInicio:'',xp:0,streak:0,ultimoDia:'',atualizado:0,cfg:{horas:10,pctDif:80}};
 const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
 const $=s=>document.querySelector(s);
 const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -73,6 +83,7 @@ function addD(iso,n){const p=iso.split('-').map(Number);return fmtD(new Date(p[0
 const fb=iso=>iso.split('-').reverse().join('/');
 const dif=(a,b)=>Math.round((new Date(a)-new Date(b))/864e5);
 function sem(){const x=new Date();x.setHours(0,0,0,0);x.setDate(x.getDate()-((x.getDay()+6)%7));return fmtD(x)}
+function semanaDe(iso){const p=iso.split('-').map(Number);const x=new Date(p[0],p[1]-1,p[2]);x.setDate(x.getDate()-((x.getDay()+6)%7));return fmtD(x)}
 function semanas(n){const o=[],b=sem();for(let i=n-1;i>=0;i--)o.push(addD(b,-7*i));return o}
 function hm(ms){const t=Math.round(ms/6e4),h=Math.floor(t/60),m=t%60;return h?h+'h'+(m?pad(m):''):m+'min'}
 function clk(ms){const s=Math.floor(ms/1000);return pad(Math.floor(s/3600))+':'+pad(Math.floor(s%3600/60))+':'+pad(s%60)}
@@ -87,8 +98,17 @@ function norm(r){
   if(!d.hist||typeof d.hist!=='object')d.hist={};
   if(!d.pastas||typeof d.pastas!=='object')d.pastas={};
   if(!d.timer||typeof d.timer.mid!=='string'||!(d.timer.st>0))d.timer=null;
+  else{
+    if(typeof d.timer.acc!=='number')d.timer.acc=0;
+    if(typeof d.timer.paused!=='boolean')d.timer.paused=false;
+  }
   d.ciclo=Math.max(1,parseInt(d.ciclo)||1);d.atualizado=+d.atualizado||0;
-  d.materias.forEach(m=>{if(m.dif!=='t')m.dif='d'});
+  if(typeof d.cicloInicio!=='string')d.cicloInicio='';
+  d.materias.forEach(m=>{
+    if(m.dif!=='t')m.dif='d';
+    if(!Array.isArray(m.difHist))m.difHist=[];
+    if(typeof m.cor!=='string')m.cor='';
+  });
   const h=+d.cfg.horas;d.cfg.horas=h>0&&h<=100?h:10;
   const p=+d.cfg.pctDif;d.cfg.pctDif=p>=1&&p<=99?p:80;
   return d;
@@ -97,7 +117,7 @@ function load(){
   try{const r=JSON.parse(localStorage.getItem(KEY));if(r&&Array.isArray(r.materias)&&Array.isArray(r.itens))return norm(r)}catch(e){}
   return clone(DEF);
 }
-let S=load(),tab='ciclo',calM=hoje().slice(0,7),selD=hoje();
+let S=load(),tab='ciclo',calM=hoje().slice(0,7),selD=hoje(),qAcervo='';
 let tok=null,fid=null,pronto=false,syncT=null,subindo=false,pend=false,expira=0,sujo=false,conectando=false,ultTent=0,msgSync='Drive: desconectado';
 const SCOPE='https://www.googleapis.com/auth/drive.file',RECON='Drive: reconecta ao tocar em qualquer botão';
 function gravaLocal(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){alert('Não consegui salvar neste aparelho. Faça um backup em Config > Exportar.')}}
@@ -139,10 +159,28 @@ function plano(){
   const H=S.cfg.horas;
   return {pd:pd,l:a.map(m=>({m:m,h:+(m.dif==='d'?H*pd/nd:H*(1-pd)/nt).toFixed(6)}))};
 }
+function novoCor(dif,excludeId){
+  const pool=dif==='d'?DC:TC;const usados={};
+  S.materias.forEach(m=>{if(m.id===excludeId)return;if(m.cor&&pool.includes(m.cor))usados[m.cor]=(usados[m.cor]||0)+1});
+  let best=pool[0],minC=Infinity;
+  pool.forEach(c=>{const n=usados[c]||0;if(n<minC){minC=n;best=c}});
+  return best;
+}
 function cores(){
-  const o={};let di=0,ti=0;
-  plano().l.forEach(p=>{o[p.m.id]=p.m.dif==='d'?DC[di++%DC.length]:TC[ti++%TC.length]});
+  const o={};let mudou=false;
+  plano().l.forEach(p=>{if(!p.m.cor){p.m.cor=novoCor(p.m.dif,p.m.id);mudou=true}o[p.m.id]=p.m.cor});
+  if(mudou)save();
   return o;
+}
+function timerElapsed(){
+  if(!S.timer)return 0;
+  if(S.timer.paused)return S.timer.acc||0;
+  return (S.timer.acc||0)+(Date.now()-S.timer.st);
+}
+function est(id){
+  let v=S.estudo[id]||0;
+  if(S.timer&&S.timer.mid===id)v+=timerElapsed();
+  return v;
 }
 function reg(id,ms){
   S.estudo[id]=(S.estudo[id]||0)+ms;
@@ -151,9 +189,8 @@ function reg(id,ms){
 function chips(C){
   const h=hoje(),l=S.materias.filter(m=>m.status==='andamento'&&m.prova&&m.prova>=h).sort((a,b)=>a.prova.localeCompare(b.prova));
   if(!l.length)return '';
-  return '<div class="chips">'+l.map(m=>{const n=dif(m.prova,h);return '<span class="chip" title="Prova em '+fb(m.prova)+'" style="border-color:'+(C[m.id]||'#8895a7')+'">'+esc(m.nome)+' · '+(n===0?'hoje':n+' d')+'</span>'}).join('')+'</div>';
+  return '<div class="chips">'+l.map(m=>{const n=dif(m.prova,h);const urg=n<=3?' urg':'';return '<span class="chip'+urg+'" title="Prova em '+fb(m.prova)+'" style="border-color:'+(C[m.id]||'#8895a7')+'">'+esc(m.nome)+' · '+(n===0?'hoje':n+' d')+'</span>'}).join('')+'</div>';
 }
-function est(id){let v=S.estudo[id]||0;if(S.timer&&S.timer.mid===id)v+=Date.now()-S.timer.st;return v}
 function metaCheck(m){
   const p=plano().l.find(x=>x.m.id===m.id);if(!p)return '';
   const k=S.ciclo+':'+m.id;
@@ -162,17 +199,31 @@ function metaCheck(m){
 }
 function fechaCiclo(){
   const P=plano().l;
-  if(!P.length||!P.every(p=>(S.estudo[p.m.id]||0)>=p.h*36e5))return '';
-  const n=S.ciclo;S.ciclo++;S.estudo={};fogos();
+  if(!P.length||!P.every(p=>est(p.m.id)>=p.h*36e5))return '';
+  const n=S.ciclo;S.ciclo++;S.estudo={};S.cicloInicio=hoje();fogos();
   return 'Ciclo '+n+' concluído! 🏆 '+ganha(50);
 }
+function infoDif(m){
+  const h=m.difHist&&m.difHist.length?m.difHist[m.difHist.length-1].data:'';
+  if(!h)return '';
+  const d=dif(hoje(),h);
+  return d===0?' (hoje)':d===1?' (ontem)':' (há '+d+'d)';
+}
 function cardM(p,col){
-  const m=p.m,meta=p.h*36e5,e=est(m.id),ok=e>=meta,pc=Math.min(100,Math.round(e/meta*100)),run=S.timer&&S.timer.mid===m.id;
-  return '<div class="c col'+(ok?' ok':'')+'"><div class="row"><span class="dot" style="background:'+col+'"></span><b>'+esc(m.nome)+'</b><small>'+(m.dif==='d'?'🔥 dificuldade':'😌 tranquilo')+' · peso '+m.peso+'</small></div><div class="pb"><i style="width:'+pc+'%"></i></div><small>'+(ok?'✔ Estudado! ':'')+hm(e)+' de '+hm(meta)+(run?' · ⏱ estudando agora':'')+'</small><span>'+(run?'':'<button class="s" onclick="iniciar(\''+m.id+'\')">▶ Estudar</button> ')+'<button class="s" onclick="agendar(\''+m.id+'\')">📅 Agendar revisão</button></span></div>';
+  const m=p.m,meta=p.h*36e5,e=est(m.id),ok=e>=meta,pc=Math.min(100,Math.round(e/meta*100));
+  const run=S.timer&&S.timer.mid===m.id;
+  const paused=run&&S.timer.paused;
+  const dtxt=m.dif==='d'?'🔥 dificuldade':'😌 tranquilo';
+  const difInfo=infoDif(m);
+  let tBtn;
+  if(paused)tBtn='<button class="s" onclick="retomar()">▶ Retomar</button>';
+  else if(run)tBtn='<button class="s" onclick="pausar()">⏸ Pausar</button>';
+  else tBtn='<button class="s" onclick="iniciar(\''+m.id+'\')">▶ Estudar</button>';
+  return '<div class="c col'+(ok?' ok':'')+'"><div class="row"><span class="dot" style="background:'+col+'"></span><b>'+esc(m.nome)+'</b><small>'+dtxt+difInfo+' · peso '+m.peso+'</small></div><div class="pb"><i style="width:'+pc+'%"></i></div><small>'+(ok?'✔ Estudado! ':'')+hm(e)+' de '+hm(meta)+(run&&!paused?' · ⏱ estudando agora':paused?' · ⏸ pausado':'')+'</small><span class="acts">'+tBtn+'<button class="s" onclick="tempoManual(\''+m.id+'\')">＋ Tempo</button><button class="s" onclick="agendar(\''+m.id+'\')">📅 Revisão</button><button class="s" onclick="reavaliar(\''+m.id+'\')">🔄 Reavaliar</button></span></div>';
 }
 function vCiclo(){
   const P=plano();
-  if(!P.l.length)return '<p class="vz">Cadastre suas matérias na aba <b>Matérias</b>, informando o nível de dificuldade de cada uma.</p>';
+  if(!P.l.length)return '<p class="vz">Cadastre suas matérias na aba <b>Matérias</b>, informando o nível de dificuldade de cada uma.</p><button onclick="go(\'mat\')">＋ Cadastrar primeira matéria</button>';
   const H=S.cfg.horas,C=cores();let cum=0,svg='';const cols=[];
   P.l.forEach(p=>{
     const done=est(p.m.id)>=p.h*36e5,col=done?GR:C[p.m.id];
@@ -182,34 +233,101 @@ function vCiclo(){
     cum+=pc;
   });
   const txt='<text x="21" y="21" text-anchor="middle" font-size="7" font-weight="700" fill="currentColor">'+(+H.toFixed(1))+'h</text><text x="21" y="26.5" text-anchor="middle" font-size="2.5" fill="currentColor">líquidas no ciclo</text>';
-  return chips(C)+'<div class="dn"><svg viewBox="0 0 42 42">'+svg+txt+'</svg></div><p class="vz" style="text-align:center;margin:0">Ciclo nº '+S.ciclo+' · dificuldade '+Math.round(P.pd*100)+'% · tranquilo '+Math.round(100-P.pd*100)+'% · verde = meta batida</p><h2>Matérias do ciclo</h2>'+P.l.map((p,i)=>cardM(p,cols[i])).join('');
+  const inicio=S.cicloInicio?(S.cicloInicio===hoje()?' · começou hoje':' · começou há '+dif(hoje(),S.cicloInicio)+' dia(s)'):'';
+  return chips(C)+'<div class="dn"><svg viewBox="0 0 42 42">'+svg+txt+'</svg></div><p class="vz" style="text-align:center;margin:0">Ciclo nº '+S.ciclo+inicio+' · dificuldade '+Math.round(P.pd*100)+'% · tranquilo '+Math.round(100-P.pd*100)+'% · verde = meta batida</p><h2>Matérias do ciclo</h2>'+P.l.map((p,i)=>cardM(p,cols[i])).join('');
 }
 
 /* ---------- CRONÔMETRO ---------- */
 function iniciar(id){
-  if(S.timer)parar();
-  S.timer={mid:id,st:Date.now()};save();render();
+  if(S.timer&&S.timer.mid===id){if(S.timer.paused)retomar();return}
+  if(S.timer){
+    const n=(mat(S.timer.mid)||{nome:'?'}).nome;
+    if(!confirm('Parar o cronômetro de "'+n+'" e iniciar outro?'))return;
+    parar();
+  }
+  S.timer={mid:id,st:Date.now(),paused:false,acc:0};
+  save();render();
+}
+function pausar(){
+  if(!S.timer||S.timer.paused)return;
+  S.timer.acc+=(Date.now()-S.timer.st);
+  S.timer.paused=true;
+  const m=mat(S.timer.mid);const msg=m?metaCheck(m):'';
+  save();render();
+  if(msg)toast(msg);
+}
+function retomar(){
+  if(!S.timer||!S.timer.paused)return;
+  S.timer.st=Date.now();S.timer.paused=false;
+  save();render();
 }
 function parar(){
   if(!S.timer)return;
-  const m=mat(S.timer.mid),ms=[];let e=Date.now()-S.timer.st;
+  const m=mat(S.timer.mid),msgs=[];
+  let e=S.timer.paused?(S.timer.acc||0):((S.timer.acc||0)+(Date.now()-S.timer.st));
   if(e>4*36e5&&!confirm('O cronômetro ficou ligado por '+hm(e)+'. Salvar esse tempo todo?'))e=0;
   S.timer=null;
-  if(m&&e>=1000){reg(m.id,e);if(e>=6e4)streak();ms.push(ganha(Math.floor(e/6e5)*m.peso),metaCheck(m))}
-  ms.push(fechaCiclo());
-  save();render();const t=ms.filter(Boolean).join(' · ');if(t)toast(t);
+  if(m&&e>=1000){reg(m.id,e);if(e>=6e4)streak();msgs.push(ganha(Math.floor(e/6e5)*m.peso),metaCheck(m))}
+  msgs.push(fechaCiclo());
+  save();render();
+  const t=msgs.filter(Boolean).join(' · ');
+  if(t)toast(t);
 }
 function tbar(){
-  if(!S.timer)return '';const m=mat(S.timer.mid);if(!m)return '';
-  return '<span>⏱ <b>'+esc(m.nome)+'</b> <span id="tv">'+clk(Date.now()-S.timer.st)+'</span></span><button class="s r" onclick="parar()">Parar e salvar</button>';
+  if(!S.timer)return '';
+  const m=mat(S.timer.mid);if(!m)return '';
+  const ic=S.timer.paused?'⏸':'⏱';
+  const est=S.timer.paused?' pausado':'';
+  const btn=S.timer.paused
+    ?'<button class="s" onclick="retomar()">▶ Retomar</button>'
+    :'<button class="s" onclick="pausar()">⏸ Pausar</button>';
+  return '<span>'+ic+' <b>'+esc(m.nome)+'</b> <span id="tv">'+clk(timerElapsed())+'</span>'+est+'</span>'+btn+' <button class="s r" onclick="parar()">⏹ Parar</button>';
 }
 function tick(){
-  if(!S.timer)return;
+  if(!S.timer||S.timer.paused)return;
   const m=mat(S.timer.mid);if(!m){S.timer=null;save();render();return}
-  const tv=$('#tv');if(tv)tv.textContent=clk(Date.now()-S.timer.st);
+  const tv=$('#tv');if(tv)tv.textContent=clk(timerElapsed());
   const msg=metaCheck(m);if(msg){save();render();toast(msg)}
 }
 setInterval(tick,1000);
+
+/* ---------- TEMPO MANUAL ---------- */
+function tempoManual(mid){
+  const a=S.materias.filter(m=>m.status==='andamento');
+  if(!a.length){toast('Cadastre uma matéria primeiro');return}
+  const opts=a.map(m=>'<option value="'+m.id+'"'+(m.id===mid?' selected':'')+'>'+esc(m.nome)+'</option>').join('');
+  $('#modal').innerHTML='<div class="ov"><div class="md"><b>Registrar tempo estudado</b><small>Para quando você estuda sem o cronômetro.</small><select id="mm">'+opts+'</select><label>Duração (minutos)<input type="number" id="mt" value="30" min="1" max="600"></label><label>Dia<input type="date" id="mdia" value="'+hoje()+'"></label><button onclick="salvManual()">Registrar</button><button class="s r" onclick="fechaM()">Cancelar</button></div></div>';
+}
+function salvManual(){
+  const mid=$('#mm').value,t=Math.round(+$('#mt').value),d=$('#mdia').value;
+  if(!(t>=1&&t<=600)){toast('Duração entre 1 e 600 min');return}
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(d)){toast('Dia inválido');return}
+  const m=mat(mid);if(!m){toast('Matéria não encontrada');return}
+  const ms=t*6e4;
+  S.estudo[mid]=(S.estudo[mid]||0)+ms;
+  const w=semanaDe(d);S.hist[w]=S.hist[w]||{};S.hist[w][mid]=(S.hist[w][mid]||0)+ms;
+  if(d===hoje())streak();
+  const msgs=[ganha(Math.floor(t/10)*m.peso),metaCheck(m),fechaCiclo()].filter(Boolean);
+  save();fechaM();render();
+  toast(msgs.join(' · ')||('Tempo registrado: '+hm(ms)));
+}
+
+/* ---------- REAVALIAR DIFICULDADE ---------- */
+function reavaliar(id){
+  const m=mat(id);if(!m)return;
+  const hist=(m.difHist||[]).map(h=>fb(h.data)+' '+(h.dif==='d'?'🔥':'😌')).join(' · ');
+  const atual=m.dif==='d'?'🔥 com dificuldade':'😌 tranquilo';
+  $('#modal').innerHTML='<div class="ov"><div class="md"><b>Reavaliar: '+esc(m.nome)+'</b><small>Dificuldade atual: <b>'+atual+'</b>'+infoDif(m)+'</small><small>Como você está se sentindo com essa matéria agora?</small><button onclick="mudaDif(\''+id+'\',\'d\')">🔥 Ainda com dificuldade</button><button onclick="mudaDif(\''+id+'\',\'t\')">😌 Já estou tranquilo</button>'+(hist?'<small>Histórico: '+hist+'</small>':'')+'<button class="s r" onclick="fechaM()">Cancelar</button></div></div>';
+}
+function mudaDif(id,d){
+  const m=mat(id);if(!m)return;
+  if(m.dif===d){fechaM();toast('Dificuldade não mudou');return}
+  if(!Array.isArray(m.difHist))m.difHist=[];
+  m.difHist.push({dif:d,data:hoje()});
+  m.dif=d;
+  save();fechaM();render();
+  toast('Dificuldade atualizada: '+(d==='d'?'🔥 com dificuldade':'😌 tranquilo'));
+}
 
 /* ---------- AGENDA ---------- */
 function agendar(mid){
@@ -236,7 +354,7 @@ function mesNav(n){const p=calM.split('-').map(Number),d=new Date(p[0],p[1]-1+n,
 function selDia(i){selD=i;render()}
 function cardA(a){
   const m=mat(a.mid);if(!m)return '';const late=!a.feito&&a.data<hoje();
-  return '<div class="c'+(a.feito?' ok':'')+'"><div><b>'+esc(m.nome)+'</b><br><small>'+(late?fb(a.data)+' · ':'')+(a.hora?a.hora+' · ':'')+a.min+' min'+(late?' · <span class="at">atrasada</span>':'')+'</small>'+(a.com?'<br><small class="cm">📝 '+esc(a.com)+'</small>':'')+'</div><span>'+(a.feito?'✔ ':'<button class="s" onclick="feito(\''+a.id+'\')">Concluir</button> ')+'<button class="s r" onclick="delAg(\''+a.id+'\')">✕</button></span></div>';
+  return '<div class="c'+(a.feito?' ok':'')+'"><div><b>'+esc(m.nome)+'</b><br><small>'+(late?fb(a.data)+' · ':'')+(a.hora?a.hora+' · ':'')+a.min+' min'+(late?' · <span class="at">atrasada</span>':'')+'</small>'+(a.com?'<br><small class="cm">📝 '+esc(a.com)+'</small>':'')+'</div><span class="acts">'+(a.feito?'✔ ':'<button class="s" onclick="feito(\''+a.id+'\')">Concluir</button>')+'<button class="s r" onclick="delAg(\''+a.id+'\')">✕</button></span></div>';
 }
 function vAgenda(){
   const p=calM.split('-').map(Number),n=new Date(p[0],p[1],0).getDate(),off=new Date(p[0],p[1]-1,1).getDay();
@@ -256,12 +374,15 @@ function vAgenda(){
 
 /* ---------- MATÉRIAS ---------- */
 function vMat(){
-  const l=x=>S.materias.filter(m=>m.status===x).map(m=>'<div class="c"><div><b>'+esc(m.nome)+'</b><br><small>'+(m.dif==='d'?'🔥 dificuldade':'😌 tranquilo')+' · peso '+m.peso+(m.prova?' · prova '+fb(m.prova):'')+'</small></div><span><button class="s" onclick="provaM(\''+m.id+'\')">Prova</button> <button class="s" onclick="setDif(\''+m.id+'\')">'+(m.dif==='d'?'Já estou bem':'Estou com dificuldade')+'</button> <button class="s" onclick="setSt(\''+m.id+'\')">'+(x==='andamento'?'Concluir':'Reabrir')+'</button> <button class="s r" onclick="delMat(\''+m.id+'\')">✕</button></span></div>').join('')||'<p class="vz">Nenhuma.</p>';
+  const l=x=>S.materias.filter(m=>m.status===x).map(m=>'<div class="c"><div><b>'+esc(m.nome)+'</b><br><small>'+(m.dif==='d'?'🔥 dificuldade':'😌 tranquilo')+infoDif(m)+' · peso '+m.peso+(m.prova?' · prova '+fb(m.prova):'')+'</small></div><span class="acts"><button class="s" onclick="provaM(\''+m.id+'\')">Prova</button><button class="s" onclick="reavaliar(\''+m.id+'\')">🔄 Reavaliar</button><button class="s" onclick="setSt(\''+m.id+'\')">'+(x==='andamento'?'Concluir':'Reabrir')+'</button><button class="s r" onclick="delMat(\''+m.id+'\')">✕</button></span></div>').join('')||'<p class="vz">Nenhuma.</p>';
   return '<h2>Nova matéria</h2><div class="f"><input id="mn" placeholder="Nome da matéria"><select id="mp"><option value="1">Peso 1</option><option value="2">Peso 2</option></select><select id="md"><option value="d">🔥 Estou com dificuldade</option><option value="t">😌 Estou tranquilo</option></select><label>Data da prova (opcional)<input type="date" id="mv"></label><button onclick="addMat()">Adicionar</button></div><h2>Em andamento</h2>'+l('andamento')+'<h2>Concluídas</h2>'+l('concluida');
 }
 function addMat(){
   const n=$('#mn').value.trim();if(!n){toast('Digite o nome da matéria');return}
-  S.materias.push({id:uid(),nome:n,peso:+$('#mp').value,dif:$('#md').value,prova:/^\d{4}-\d{2}-\d{2}$/.test($('#mv').value)?$('#mv').value:'',status:'andamento'});save();render();
+  const dif=$('#md').value;
+  S.materias.push({id:uid(),nome:n,peso:+$('#mp').value,dif:dif,prova:/^\d{4}-\d{2}-\d{2}$/.test($('#mv').value)?$('#mv').value:'',status:'andamento',cor:novoCor(dif),difHist:[{dif:dif,data:hoje()}]});
+  if(!S.cicloInicio)S.cicloInicio=hoje();
+  save();render();
 }
 function provaM(id){
   const m=mat(id);
@@ -269,7 +390,6 @@ function provaM(id){
 }
 function salvaProva(id){const v=$('#pv').value;if(!/^\d{4}-\d{2}-\d{2}$/.test(v)){toast('Escolha a data');return}mat(id).prova=v;save();fechaM();render()}
 function tiraProva(id){mat(id).prova='';save();fechaM();render()}
-function setDif(id){const m=mat(id);m.dif=m.dif==='d'?'t':'d';save();render()}
 function setSt(id){
   if(S.timer&&S.timer.mid===id)parar();
   const m=mat(id);m.status=m.status==='andamento'?'concluida':'andamento';
@@ -279,7 +399,9 @@ function delMat(id){
   const n=S.itens.filter(i=>i.mid===id).length;
   if(!confirm('Apagar esta matéria'+(n?' e suas '+n+' atividade(s)':'')+'?'))return;
   if(S.timer&&S.timer.mid===id)S.timer=null;
-  S.materias=S.materias.filter(m=>m.id!==id);S.itens=S.itens.filter(i=>i.mid!==id);S.agenda=S.agenda.filter(a=>a.mid!==id);delete S.estudo[id];Object.keys(S.hist).forEach(k=>delete S.hist[k][id]);
+  S.materias=S.materias.filter(m=>m.id!==id);S.itens=S.itens.filter(i=>i.mid!==id);S.agenda=S.agenda.filter(a=>a.mid!==id);delete S.estudo[id];delete S.pastas[id];
+  Object.keys(S.hist).forEach(k=>delete S.hist[k][id]);
+  Object.keys(S.bonus).forEach(k=>{if(k.endsWith(':'+id))delete S.bonus[k]});
   const t=fechaCiclo();save();render();if(t)toast(t);
 }
 
@@ -296,11 +418,11 @@ function barras(v,W8,col){
 }
 function vGraf(){
   const ms=S.materias.filter(m=>m.status==='andamento'||Object.keys(S.hist).some(k=>(S.hist[k][m.id]||0)>0));
-  if(!ms.length)return '<p class="vz">Cadastre matérias e estude com o cronômetro para ver os gráficos.</p>';
+  if(!ms.length)return '<p class="vz">Cadastre matérias e estude com o cronômetro para ver os gráficos.</p><button onclick="go(\'mat\')">＋ Cadastrar matéria</button>';
   const W8=semanas(8),C=cores(),cur=sem();
-  return '<h2>Horas por semana</h2><p class="vz" style="margin:0">Últimas 8 semanas (a semana começa na segunda). A última barra é a semana atual. O histórico começa a contar a partir desta versão.</p>'+ms.map(m=>{
+  return '<h2>Horas por semana</h2><p class="vz" style="margin:0">Últimas 8 semanas (a semana começa na segunda). A última barra é a semana atual.</p>'+ms.map(m=>{
     const col=C[m.id]||'#8895a7';
-    const v=W8.map(w=>((S.hist[w]||{})[m.id]||0)/36e5+(w===cur&&S.timer&&S.timer.mid===m.id?(Date.now()-S.timer.st)/36e5:0));
+    const v=W8.map(w=>((S.hist[w]||{})[m.id]||0)/36e5+(w===cur&&S.timer&&S.timer.mid===m.id?timerElapsed()/36e5:0));
     const tot=v.reduce((a,b)=>a+b,0);
     return '<div class="c col"><div class="row"><span class="dot" style="background:'+col+'"></span><b>'+esc(m.nome)+'</b></div>'+barras(v,W8,col)+'<small>Total: '+hm(tot*36e5)+' · média '+hm(tot/8*36e5)+'/semana · estudou em '+v.filter(x=>x>0).length+' de 8 semanas</small></div>';
   }).join('');
@@ -308,8 +430,8 @@ function vGraf(){
 
 /* ---------- ACERVO ---------- */
 function vAcervo(){
-  if(!S.materias.length)return '<p class="vz">Cadastre uma matéria primeiro, na aba Matérias.</p>';
-  return '<h2>Nova atividade</h2><div class="f col"><select id="am">'+S.materias.map(m=>'<option value="'+m.id+'">'+esc(m.nome)+(m.status==='concluida'?' (concluída)':'')+'</option>').join('')+'</select><input id="at" placeholder="Título (ex.: Lista 3 – Integrais)"><input id="al" placeholder="Link do PDF no Drive (opcional)"><input id="af" placeholder="Questões que fiz (ex.: 1-10)"><input id="ar" placeholder="Questões para revisar (ex.: 4, 7)"><textarea id="ac" rows="2" placeholder="Comentários / o que aprendi"></textarea><label>Anexar PDF (opcional, vai para o seu Drive)<input type="file" id="ap" accept="application/pdf,.pdf"></label><button onclick="addItem()">Salvar no acervo</button></div><h2>Acervo</h2><input id="q" placeholder="Buscar no acervo..." oninput="lista()"><div id="lista"></div>';
+  if(!S.materias.length)return '<p class="vz">Cadastre uma matéria primeiro, na aba Matérias.</p><button onclick="go(\'mat\')">＋ Cadastrar matéria</button>';
+  return '<h2>Nova atividade</h2><div class="f col"><select id="am">'+S.materias.map(m=>'<option value="'+m.id+'">'+esc(m.nome)+(m.status==='concluida'?' (concluída)':'')+'</option>').join('')+'</select><input id="at" placeholder="Título (ex.: Lista 3 – Integrais)"><input id="al" placeholder="Link do PDF no Drive (opcional)"><input id="af" placeholder="Questões que fiz (ex.: 1-10)"><input id="ar" placeholder="Questões para revisar (ex.: 4, 7)"><textarea id="ac" rows="2" placeholder="Comentários / o que aprendi"></textarea><label>Anexar PDF (opcional, vai para o seu Drive)<input type="file" id="ap" accept="application/pdf,.pdf"></label><button onclick="addItem()">Salvar no acervo</button></div><h2>Acervo</h2><input id="q" placeholder="Buscar no acervo..." oninput="qAcervo=this.value;lista()" value="'+esc(qAcervo)+'"><div id="lista"></div>';
 }
 async function addItem(){
   const t=$('#at').value.trim();if(!t){toast('Digite o título');return}
@@ -349,13 +471,14 @@ async function rmPdf(id){
   if(lixo)await trashPdf(f);
 }
 function lista(){
-  const q=($('#q').value||'').toLowerCase();
+  const el=$('#lista');if(!el)return;
+  const q=(qAcervo||'').toLowerCase();
   const r=S.itens.filter(i=>((i.titulo||'')+' '+(i.com||'')+' '+(i.rev||'')+' '+(i.feitas||'')+' '+(mat(i.mid)||{nome:''}).nome).toLowerCase().includes(q)).sort((a,b)=>(b.criado||'').localeCompare(a.criado||''));
-  $('#lista').innerHTML=r.map(i=>{
+  el.innerHTML=r.map(i=>{
     const m=mat(i.mid)||{nome:'?'};
     const lk=/^https?:\/\//i.test(i.link||'')?' · <a href="'+esc(i.link)+'" target="_blank" rel="noopener">abrir PDF</a>':'';
     const pl=i.pdf&&/^[\w-]+$/.test(i.pdf.id)?'<small><a href="https://drive.google.com/file/d/'+i.pdf.id+'/view" target="_blank" rel="noopener">📄 '+esc(i.pdf.nome)+'</a></small>':'';
-    return '<div class="c col"><b>'+esc(i.titulo)+'</b><small>'+esc(m.nome)+lk+'</small>'+pl+(i.feitas?'<small>Fiz: '+esc(i.feitas)+'</small>':'')+(i.rev?'<small>Revisar: '+esc(i.rev)+'</small>':'')+(i.com?'<small class="cm">'+esc(i.com)+'</small>':'')+'<span><button class="s" onclick="edit(\''+i.id+'\')">Editar notas</button> '+(i.pdf?'<button class="s" onclick="rmPdf(\''+i.id+'\')">Remover PDF</button> ':'<button class="s" onclick="anexar(\''+i.id+'\')">📎 Anexar PDF</button> ')+'<button class="s r" onclick="delItem(\''+i.id+'\')">✕</button></span></div>';
+    return '<div class="c col"><b>'+esc(i.titulo)+'</b><small>'+esc(m.nome)+lk+'</small>'+pl+(i.feitas?'<small>Fiz: '+esc(i.feitas)+'</small>':'')+(i.rev?'<small>Revisar: '+esc(i.rev)+'</small>':'')+(i.com?'<small class="cm">'+esc(i.com)+'</small>':'')+'<span class="acts"><button class="s" onclick="edit(\''+i.id+'\')">Editar notas</button>'+(i.pdf?'<button class="s" onclick="rmPdf(\''+i.id+'\')">Remover PDF</button>':'<button class="s" onclick="anexar(\''+i.id+'\')">📎 Anexar PDF</button>')+'<button class="s r" onclick="delItem(\''+i.id+'\')">✕</button></span></div>';
   }).join('')||'<p class="vz">Nada por aqui ainda.</p>';
 }
 function edit(id){
@@ -433,7 +556,16 @@ async function subir(){
       const b='estudosfronteira';
       const r=await drv('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',{method:'POST',headers:{'Content-Type':'multipart/related; boundary='+b},body:'--'+b+'\r\nContent-Type: application/json\r\n\r\n'+JSON.stringify({name:NOME,mimeType:'application/json'})+'\r\n--'+b+'\r\nContent-Type: application/json\r\n\r\n'+body+'\r\n--'+b+'--'});
       fid=(await r.json()).id;
-    }else await drv('https://www.googleapis.com/upload/drive/v3/files/'+fid+'?uploadType=media',{method:'PATCH',headers:{'Content-Type':'application/json'},body:body});
+    }else{
+      try{
+        await drv('https://www.googleapis.com/upload/drive/v3/files/'+fid+'?uploadType=media',{method:'PATCH',headers:{'Content-Type':'application/json'},body:body});
+      }catch(e){
+        if(/HTTP 404/.test(e.message)){
+          fid=null;subindo=false;setMsg('Drive: arquivo sumiu, recriando…');return subir();
+        }
+        throw e;
+      }
+    }
     localStorage.setItem(BASE,String(d.atualizado));sujo=S.atualizado>d.atualizado;setMsg('Drive: sincronizado ✔');
   }catch(e){if(tok)setMsg('Drive: falha ao salvar (tento de novo na próxima alteração)')}
   subindo=false;if(pend){pend=false;subir()}
@@ -491,6 +623,16 @@ function initDrive(){
   document.head.appendChild(s);
 }
 
+/* ---------- ATALHOS ---------- */
+document.addEventListener('keydown',e=>{
+  if(e.code!=='Space')return;
+  const tag=(document.activeElement||{}).tagName||'';
+  if(/^(INPUT|TEXTAREA|SELECT|BUTTON|A)$/.test(tag))return;
+  if(!S.timer)return;
+  e.preventDefault();
+  if(S.timer.paused)retomar();else pausar();
+});
+
 /* ---------- CONFIG / BACKUP ---------- */
 function vCfg(){
   return '<h2>Ciclo de estudos</h2><div class="f col"><label>Horas líquidas de estudo em um ciclo<input id="ch" type="number" step="0.5" min="1" max="100" value="'+S.cfg.horas+'"></label><label>% do tempo para matérias com dificuldade (o resto vai para as tranquilas)<input id="cp" type="number" min="1" max="99" value="'+S.cfg.pctDif+'"></label><button onclick="saveCfg()">Salvar</button></div><p class="vz">O ciclo só reinicia quando todas as matérias baterem a meta. Mudar as horas nunca apaga o que você já estudou.</p>'
@@ -512,7 +654,8 @@ function saveCfg(){
   S.cfg.horas=h;S.cfg.pctDif=p;const t=fechaCiclo();save();render();toast(t||'Ciclo atualizado');
 }
 function exp(){
-  const b=new Blob([JSON.stringify(S,null,1)],{type:'application/json'});
+  const d=clone(S);d.timer=null;
+  const b=new Blob([JSON.stringify(d,null,1)],{type:'application/json'});
   const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='estudos-backup-'+hoje()+'.json';
   document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 }
@@ -535,7 +678,7 @@ function render(){
   const h=hoje(),sq=(S.ultimoDia===h||S.ultimoDia===addD(h,-1))?S.streak:0;
   $('#hd').innerHTML='<b>Nível '+nivelXP()+'</b> · '+S.xp+' XP · 🔥 '+sq+' dia(s) seguidos<div class="bar"><i style="width:'+(S.xp%100)+'%"></i></div><small class="sy">'+esc(msgSync)+'</small>';
   $('#tb').innerHTML=tbar();
-  $('#nav').innerHTML=[['ciclo','Ciclo'],['agenda','Agenda'],['mat','Matérias'],['acervo','Acervo'],['graf','Gráficos'],['cfg','Config']].map(a=>'<button class="'+(tab===a[0]?'on':'')+'" onclick="go(\''+a[0]+'\')">'+a[1]+'</button>').join('');
+  $('#nav').innerHTML=[['ciclo','📚 Ciclo'],['agenda','📅 Agenda'],['mat','📋 Matérias'],['acervo','📁 Acervo'],['graf','📊 Gráficos'],['cfg','⚙ Config']].map(a=>'<button class="'+(tab===a[0]?'on':'')+'" onclick="go(\''+a[0]+'\')">'+a[1]+'</button>').join('');
   $('#app').innerHTML={ciclo:vCiclo,agenda:vAgenda,mat:vMat,acervo:vAcervo,graf:vGraf,cfg:vCfg}[tab]();
   if(tab==='acervo'&&$('#lista'))lista();
 }
