@@ -21,7 +21,7 @@ header{background:#1d4e89;color:#fff;padding:12px 16px;position:sticky;top:0;z-i
 #tb:empty{display:none}
 #tb{margin-top:8px;background:var(--am);color:#14243b;border-radius:8px;padding:6px 10px;display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:.9rem;flex-wrap:wrap}
 #tb button{background:#14243b;color:#fff}
-main{max-width:640px;margin:0 auto;padding:8px 14px}
+main{max-width:900px;margin:0 auto;padding:8px 14px}
 h2{font-size:1.05rem;margin:18px 0 8px}
 nav{position:fixed;bottom:0;left:0;right:0;display:flex;background:var(--card);border-top:1px solid var(--ln)}
 nav button{flex:1;padding:14px 2px;border:0;border-radius:0;background:none;color:var(--mut);font-size:.7rem;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -51,14 +51,31 @@ label{display:flex;flex-direction:column;text-align:left;font-size:.85rem;color:
 .dn{max-width:270px;margin:6px auto;color:var(--ink)}.dn svg{width:100%;display:block}
 @media(min-width:520px){.dn{max-width:340px;margin:10px auto}}
 .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;text-align:center}
-.cal b{padding:9px 0;border-radius:8px;position:relative;font-weight:400;cursor:pointer;background:var(--card);border:1px solid var(--ln)}
-.cal b.hj{border-color:var(--am);font-weight:700}.cal b.sl{background:var(--bl);color:#fff}
+.cal button{padding:9px 0;border-radius:8px;position:relative;font-weight:400;cursor:pointer;background:var(--card);border:1px solid var(--ln);color:var(--ink)}
+.cal button.hj{border-color:var(--am);font-weight:700}.cal button.sl{background:var(--bl);color:#fff;border-color:var(--bl)}
 .cal u{position:absolute;left:50%;bottom:3px;width:6px;height:6px;margin-left:-3px;border-radius:50%;background:var(--am)}.cal u.ok{background:var(--gr)}
 .cal i{display:block}
 .ov{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:9;padding:14px}
 .md{background:var(--card);border-radius:14px;padding:18px;width:100%;max-width:400px;display:flex;flex-direction:column;gap:10px;max-height:90vh;overflow:auto}
 .acts{display:flex;flex-wrap:wrap;gap:6px}
 #toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:var(--am);color:#14243b;font-weight:700;padding:10px 16px;border-radius:20px;display:none;z-index:40;text-align:center;max-width:92vw}
+
+/* Estilos do Acervo em Árvore e Imagens */
+details{margin:10px 0;background:var(--card);border:1px solid var(--ln);border-radius:10px;overflow:hidden}
+summary{padding:12px;cursor:pointer;font-weight:700;background:rgba(29,78,137,.06);display:flex;align-items:center;justify-content:space-between;user-select:none}
+summary::-webkit-details-marker{display:none}
+summary::before{content:'▶';font-size:.8em;margin-right:8px;color:var(--mut);transition:transform .2s}
+details[open]>summary::before{transform:rotate(90deg)}
+details[open]>summary{border-bottom:1px solid var(--ln)}
+.tag-folder{margin:8px 12px;border-color:var(--am);border-radius:8px}
+.tag-folder summary{background:rgba(242,169,0,.08);padding:8px 12px;font-size:.9em}
+.item-acervo{border:none;border-bottom:1px solid var(--ln);border-radius:0;margin:0;padding:10px 12px}
+.item-acervo:last-child{border-bottom:none}
+.thumbs{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0}
+.thumb{width:60px;height:60px;border-radius:6px;object-fit:cover;border:1px solid var(--ln);cursor:pointer;transition:transform .2s;background:#eee}
+.thumb:hover{transform:scale(1.05)}
+.paste-zone{border:2px dashed var(--bl);border-radius:8px;padding:15px;text-align:center;color:var(--bl);font-size:.9em;background:rgba(29,78,137,.05);margin-bottom:10px}
+.paste-zone.hl{background:rgba(242,169,0,.2);border-color:var(--am)}
 </style>
 </head>
 <body>
@@ -87,6 +104,8 @@ function semanaDe(iso){const p=iso.split('-').map(Number);const x=new Date(p[0],
 function semanas(n){const o=[],b=sem();for(let i=n-1;i>=0;i--)o.push(addD(b,-7*i));return o}
 function hm(ms){const t=Math.round(ms/6e4),h=Math.floor(t/60),m=t%60;return h?h+'h'+(m?pad(m):''):m+'min'}
 function clk(ms){const s=Math.floor(ms/1000);return pad(Math.floor(s/3600))+':'+pad(Math.floor(s%3600/60))+':'+pad(s%60)}
+const normStr = s => String(s||'').normalize('NFD').replace(/\p{M}/gu,'').toLowerCase();
+function linkify(t){return esc(t).replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>')}
 
 function norm(r){
   const d=Object.assign(clone(DEF),r);d.cfg=Object.assign({},DEF.cfg,r.cfg);
@@ -108,6 +127,13 @@ function norm(r){
     if(m.dif!=='t')m.dif='d';
     if(!Array.isArray(m.difHist))m.difHist=[];
     if(typeof m.cor!=='string')m.cor='';
+    if(!Array.isArray(m.tags))m.tags=[];
+  });
+  d.itens.forEach(i=>{
+    if(typeof i.tag!=='string')i.tag='';
+    if(!Array.isArray(i.imagens))i.imagens=[];
+    // Segurança de ID no backup
+    i.imagens = i.imagens.filter(img => img && /^[\w-]+$/.test(img.id));
   });
   const h=+d.cfg.horas;d.cfg.horas=h>0&&h<=100?h:10;
   const p=+d.cfg.pctDif;d.cfg.pctDif=p>=1&&p<=99?p:80;
@@ -117,9 +143,12 @@ function load(){
   try{const r=JSON.parse(localStorage.getItem(KEY));if(r&&Array.isArray(r.materias)&&Array.isArray(r.itens))return norm(r)}catch(e){}
   return clone(DEF);
 }
-let S=load(),tab='ciclo',calM=hoje().slice(0,7),selD=hoje(),qAcervo='';
+let S=load(),tab='ciclo',calM=hoje().slice(0,7),selD=hoje(),qAcervo='',pendingImages=[],pendingPdf=null;
 let tok=null,fid=null,pronto=false,syncT=null,subindo=false,pend=false,expira=0,sujo=false,conectando=false,ultTent=0,msgSync='Drive: desconectado';
+let openFolders = new Set();
+let imgBlobCache = {};
 const SCOPE='https://www.googleapis.com/auth/drive.file',RECON='Drive: reconecta ao tocar em qualquer botão';
+
 function gravaLocal(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){alert('Não consegui salvar neste aparelho. Faça um backup em Config > Exportar.')}}
 function save(){
   S.atualizado=Date.now();gravaLocal();
@@ -131,7 +160,7 @@ const nivelXP=()=>Math.floor(S.xp/100)+1;
 function toast(t){const e=$('#toast');e.textContent=t;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',3200)}
 function ganha(g){const a=nivelXP();S.xp+=g;const up=nivelXP()>a;if(up)fogos();return (g?'+'+g+' XP':'Tempo salvo')+(up?' · NÍVEL '+nivelXP()+'! 🎉':'')}
 function streak(){const h=hoje();if(S.ultimoDia===h)return;S.streak=S.ultimoDia===addD(h,-1)?S.streak+1:1;S.ultimoDia=h}
-function go(k){tab=k;render()}
+function go(k){tab=k;if(k!=='acervo'){pendingImages=[];pendingPdf=null;}render()}
 
 /* ---------- FOGOS ---------- */
 function fogos(){
@@ -200,7 +229,18 @@ function metaCheck(m){
 function fechaCiclo(){
   const P=plano().l;
   if(!P.length||!P.every(p=>est(p.m.id)>=p.h*36e5))return '';
-  const n=S.ciclo;S.ciclo++;S.estudo={};S.cicloInicio=hoje();fogos();
+  const n=S.ciclo; S.ciclo++;
+  
+  // ROLAGEM DE EXCEDENTE
+  const newEstudo = {};
+  P.forEach(p => {
+    const meta = p.h * 36e5;
+    const spent = est(p.m.id);
+    if (spent > meta) newEstudo[p.m.id] = spent - meta;
+  });
+  S.estudo = newEstudo;
+  
+  S.cicloInicio=hoje();fogos();
   return 'Ciclo '+n+' concluído! 🏆 '+ganha(50);
 }
 function infoDif(m){
@@ -354,7 +394,7 @@ function mesNav(n){const p=calM.split('-').map(Number),d=new Date(p[0],p[1]-1+n,
 function selDia(i){selD=i;render()}
 function cardA(a){
   const m=mat(a.mid);if(!m)return '';const late=!a.feito&&a.data<hoje();
-  return '<div class="c'+(a.feito?' ok':'')+'"><div><b>'+esc(m.nome)+'</b><br><small>'+(late?fb(a.data)+' · ':'')+(a.hora?a.hora+' · ':'')+a.min+' min'+(late?' · <span class="at">atrasada</span>':'')+'</small>'+(a.com?'<br><small class="cm">📝 '+esc(a.com)+'</small>':'')+'</div><span class="acts">'+(a.feito?'✔ ':'<button class="s" onclick="feito(\''+a.id+'\')">Concluir</button>')+'<button class="s r" onclick="delAg(\''+a.id+'\')">✕</button></span></div>';
+  return '<div class="c'+(a.feito?' ok':'')+'"><div><b>'+esc(m.nome)+'</b><br><small>'+(late?fb(a.data)+' · ':'')+(a.hora?a.hora+' · ':'')+a.min+' min'+(late?' · <span class="at">atrasada</span>':'')+'</small>'+(a.com?'<br><small class="cm">📝 '+linkify(a.com)+'</small>':'')+'</div><span class="acts">'+(a.feito?'✔ ':'<button class="s" onclick="feito(\''+a.id+'\')">Concluir</button>')+'<button class="s r" onclick="delAg(\''+a.id+'\')">✕</button></span></div>';
 }
 function vAgenda(){
   const p=calM.split('-').map(Number),n=new Date(p[0],p[1],0).getDate(),off=new Date(p[0],p[1]-1,1).getDay();
@@ -362,7 +402,7 @@ function vAgenda(){
   for(let i=0;i<off;i++)g+='<i></i>';
   for(let d=1;d<=n;d++){
     const iso=calM+'-'+pad(d),q=S.agenda.filter(a=>a.data===iso&&mat(a.mid));
-    g+='<b class="'+(iso===hoje()?'hj ':'')+(iso===selD?'sl':'')+'" onclick="selDia(\''+iso+'\')">'+d+(q.length?'<u class="'+(q.some(a=>!a.feito)?'':'ok')+'"></u>':'')+'</b>';
+    g+='<button class="'+(iso===hoje()?'hj ':'')+(iso===selD?'sl':'')+'" onclick="selDia(\''+iso+'\')">'+d+(q.length?'<u class="'+(q.some(a=>!a.feito)?'':'ok')+'"></u>':'')+'</button>';
   }
   const late=S.agenda.filter(a=>!a.feito&&a.data<hoje()).sort((a,b)=>a.data.localeCompare(b.data));
   const dia=S.agenda.filter(a=>a.data===selD).sort((a,b)=>(a.hora||'99').localeCompare(b.hora||'99'));
@@ -374,22 +414,27 @@ function vAgenda(){
 
 /* ---------- MATÉRIAS ---------- */
 function vMat(){
-  const l=x=>S.materias.filter(m=>m.status===x).map(m=>'<div class="c"><div><b>'+esc(m.nome)+'</b><br><small>'+(m.dif==='d'?'🔥 dificuldade':'😌 tranquilo')+infoDif(m)+' · peso '+m.peso+(m.prova?' · prova '+fb(m.prova):'')+'</small></div><span class="acts"><button class="s" onclick="provaM(\''+m.id+'\')">Prova</button><button class="s" onclick="reavaliar(\''+m.id+'\')">🔄 Reavaliar</button><button class="s" onclick="setSt(\''+m.id+'\')">'+(x==='andamento'?'Concluir':'Reabrir')+'</button><button class="s r" onclick="delMat(\''+m.id+'\')">✕</button></span></div>').join('')||'<p class="vz">Nenhuma.</p>';
-  return '<h2>Nova matéria</h2><div class="f"><input id="mn" placeholder="Nome da matéria"><select id="mp"><option value="1">Peso 1</option><option value="2">Peso 2</option></select><select id="md"><option value="d">🔥 Estou com dificuldade</option><option value="t">😌 Estou tranquilo</option></select><label>Data da prova (opcional)<input type="date" id="mv"></label><button onclick="addMat()">Adicionar</button></div><h2>Em andamento</h2>'+l('andamento')+'<h2>Concluídas</h2>'+l('concluida');
+  const l=x=>S.materias.filter(m=>m.status===x).map(m=>'<div class="c"><div><b>'+esc(m.nome)+'</b><br><small>'+(m.dif==='d'?'🔥 dificuldade':'😌 tranquilo')+infoDif(m)+' · peso '+m.peso+(m.prova?' · prova '+fb(m.prova):'')+'</small></div><span class="acts"><button class="s" onclick="editMat(\''+m.id+'\')">✏️ Editar</button><button class="s" onclick="reavaliar(\''+m.id+'\')">🔄 Reavaliar</button><button class="s" onclick="setSt(\''+m.id+'\')">'+(x==='andamento'?'Concluir':'Reabrir')+'</button><button class="s r" onclick="delMat(\''+m.id+'\')">✕</button></span></div>').join('')||'<p class="vz">Nenhuma.</p>';
+  return '<h2>Nova matéria</h2><div class="f"><input id="mn" placeholder="Nome da matéria"><select id="mp"><option value="1">Peso 1</option><option value="2">Peso 2</option><option value="3">Peso 3</option></select><select id="md"><option value="d">🔥 Estou com dificuldade</option><option value="t">😌 Estou tranquilo</option></select><label>Data da prova (opcional)<input type="date" id="mv"></label><button onclick="addMat()">Adicionar</button></div><h2>Em andamento</h2>'+l('andamento')+'<h2>Concluídas</h2>'+l('concluida');
 }
 function addMat(){
   const n=$('#mn').value.trim();if(!n){toast('Digite o nome da matéria');return}
   const dif=$('#md').value;
-  S.materias.push({id:uid(),nome:n,peso:+$('#mp').value,dif:dif,prova:/^\d{4}-\d{2}-\d{2}$/.test($('#mv').value)?$('#mv').value:'',status:'andamento',cor:novoCor(dif),difHist:[{dif:dif,data:hoje()}]});
+  S.materias.push({id:uid(),nome:n,peso:+$('#mp').value,dif:dif,prova:/^\d{4}-\d{2}-\d{2}$/.test($('#mv').value)?$('#mv').value:'',status:'andamento',cor:novoCor(dif),tags:[],difHist:[{dif:dif,data:hoje()}]});
   if(!S.cicloInicio)S.cicloInicio=hoje();
   save();render();
 }
-function provaM(id){
-  const m=mat(id);
-  $('#modal').innerHTML='<div class="ov"><div class="md"><b>Data da prova</b><small>'+esc(m.nome)+'</small><input type="date" id="pv" value="'+esc(m.prova||'')+'"><button onclick="salvaProva(\''+id+'\')">Salvar</button><button class="s" onclick="tiraProva(\''+id+'\')">Remover data</button><button class="s r" onclick="fechaM()">Cancelar</button></div></div>';
+function editMat(id){
+  const m=mat(id);if(!m)return;
+  $('#modal').innerHTML='<div class="ov"><div class="md"><b>Editar Matéria</b><label>Nome<input id="em_n" value="'+esc(m.nome)+'"></label><label>Peso<select id="em_p"><option value="1" '+(m.peso==1?'selected':'')+'>1</option><option value="2" '+(m.peso==2?'selected':'')+'>2</option><option value="3" '+(m.peso==3?'selected':'')+'>3</option></select></label><label>Data da Prova<input type="date" id="em_v" value="'+esc(m.prova||'')+'"></label><button onclick="salvaEditMat(\''+id+'\')">Salvar Alterações</button><button class="s r" onclick="fechaM()">Cancelar</button></div></div>';
 }
-function salvaProva(id){const v=$('#pv').value;if(!/^\d{4}-\d{2}-\d{2}$/.test(v)){toast('Escolha a data');return}mat(id).prova=v;save();fechaM();render()}
-function tiraProva(id){mat(id).prova='';save();fechaM();render()}
+function salvaEditMat(id){
+  const m=mat(id);
+  const n=$('#em_n').value.trim(); if(n) m.nome=n;
+  m.peso=+$('#em_p').value;
+  m.prova=/^\d{4}-\d{2}-\d{2}$/.test($('#em_v').value)?$('#em_v').value:'';
+  save();fechaM();render();toast('Matéria atualizada');
+}
 function setSt(id){
   if(S.timer&&S.timer.mid===id)parar();
   const m=mat(id);m.status=m.status==='andamento'?'concluida':'andamento';
@@ -397,9 +442,10 @@ function setSt(id){
 }
 function delMat(id){
   const n=S.itens.filter(i=>i.mid===id).length;
-  if(!confirm('Apagar esta matéria'+(n?' e suas '+n+' atividade(s)':'')+'?'))return;
+  if(!confirm('Apagar esta matéria do ciclo?\n\nDICA: Se você quer apenas tirá-la do ciclo atual, use o botão "Concluir".\n\nSe apagar agora, as '+n+' atividades do Acervo NÃO serão apagadas, mas ficarão "órfãs".'))return;
   if(S.timer&&S.timer.mid===id)S.timer=null;
-  S.materias=S.materias.filter(m=>m.id!==id);S.itens=S.itens.filter(i=>i.mid!==id);S.agenda=S.agenda.filter(a=>a.mid!==id);delete S.estudo[id];delete S.pastas[id];
+  S.materias=S.materias.filter(m=>m.id!==id);
+  S.agenda=S.agenda.filter(a=>a.mid!==id);delete S.estudo[id];delete S.pastas[id];
   Object.keys(S.hist).forEach(k=>delete S.hist[k][id]);
   Object.keys(S.bonus).forEach(k=>{if(k.endsWith(':'+id))delete S.bonus[k]});
   const t=fechaCiclo();save();render();if(t)toast(t);
@@ -410,7 +456,8 @@ function barras(v,W8,col){
   const bw=26,gap=10,H=100,x0=8,mx=Math.max.apply(null,v.concat([1]));let b='';
   v.forEach((x,i)=>{
     const bh=x/mx*H,xx=x0+i*(bw+gap),cx=xx+bw/2;
-    b+='<rect x="'+xx+'" y="'+(14+H-bh).toFixed(1)+'" width="'+bw+'" height="'+(x>0?Math.max(bh,1.5):0).toFixed(1)+'" rx="3" fill="'+col+'"/>';
+    if(x>0) b+='<rect x="'+xx+'" y="'+(14+H-bh).toFixed(1)+'" width="'+bw+'" height="'+bh.toFixed(1)+'" rx="3" fill="'+col+'"/>';
+    else b+='<rect x="'+xx+'" y="'+(14+H-1.5)+'" width="'+bw+'" height="1.5" rx="1" fill="'+col+'" opacity="0.3"/>';
     if(x>0)b+='<text x="'+cx+'" y="'+(11+H-bh).toFixed(1)+'" text-anchor="middle" font-size="9" fill="currentColor">'+(+x.toFixed(1))+'h</text>';
     b+='<text x="'+cx+'" y="'+(H+27)+'" text-anchor="middle" font-size="8" fill="#8895a7">'+W8[i].slice(8)+'/'+W8[i].slice(5,7)+'</text>';
   });
@@ -431,20 +478,259 @@ function vGraf(){
 /* ---------- ACERVO ---------- */
 function vAcervo(){
   if(!S.materias.length)return '<p class="vz">Cadastre uma matéria primeiro, na aba Matérias.</p><button onclick="go(\'mat\')">＋ Cadastrar matéria</button>';
-  return '<h2>Nova atividade</h2><div class="f col"><select id="am">'+S.materias.map(m=>'<option value="'+m.id+'">'+esc(m.nome)+(m.status==='concluida'?' (concluída)':'')+'</option>').join('')+'</select><input id="at" placeholder="Título (ex.: Lista 3 – Integrais)"><input id="al" placeholder="Link do PDF no Drive (opcional)"><input id="af" placeholder="Questões que fiz (ex.: 1-10)"><input id="ar" placeholder="Questões para revisar (ex.: 4, 7)"><textarea id="ac" rows="2" placeholder="Comentários / o que aprendi"></textarea><label>Anexar PDF (opcional, vai para o seu Drive)<input type="file" id="ap" accept="application/pdf,.pdf"></label><button onclick="addItem()">Salvar no acervo</button></div><h2>Acervo</h2><input id="q" placeholder="Buscar no acervo..." oninput="qAcervo=this.value;lista()" value="'+esc(qAcervo)+'"><div id="lista"></div>';
+  const optsM=S.materias.map(m=>'<option value="'+m.id+'">'+esc(m.nome)+(m.status==='concluida'?' (concluída)':'')+'</option>').join('');
+  
+  return '<h2>Nova atividade</h2><div class="f col"><div class="f">'
+    +'<select id="am" onchange="updateTagsSelect()" style="flex:2">'+optsM+'</select>'
+    +'<select id="atag" style="flex:1"><option value="">Sem tag</option></select>'
+    +'<button class="s" onclick="addTagPrompt()" style="flex:0 0 auto">＋ Tag</button>'
+    +'</div>'
+    +'<input id="at" placeholder="Título (ex: 01. Lista Pórtico)">'
+    +'<input id="al" placeholder="Link (opcional)">'
+    +'<input id="af" placeholder="Questões que fiz (ex.: 1-10)">'
+    +'<input id="ar" placeholder="Questões para revisar (ex.: 4, 7)">'
+    +'<textarea id="ac" rows="2" placeholder="Comentários / links soltos"></textarea>'
+    +'<div id="paste-zone" class="paste-zone">Cole imagens ou PDFs aqui (Ctrl+V) ou clique para escolher</div>'
+    +'<input type="file" id="ap" accept="application/pdf,.pdf,image/*" multiple style="display:none" onchange="handleFileSelect(event)">'
+    +'<div id="paste-preview"></div>'
+    +'<button onclick="addItem()">Salvar no acervo</button></div>'
+    +'<h2>Acervo</h2><input id="q" placeholder="Buscar..." oninput="qAcervo=this.value;lista()" value="'+esc(qAcervo)+'"><div id="lista"></div>';
 }
+function updateTagsSelect(selectedTag) {
+  const mid = $('#am') ? $('#am').value : null;
+  if (!mid) return;
+  const m = mat(mid);
+  const sel = $('#atag');
+  if (!m || !sel) return;
+  sel.innerHTML = '<option value="">Sem tag</option>' + (m.tags || []).map(t => `<option value="${esc(t)}" ${t === selectedTag ? 'selected' : ''}>${esc(t)}</option>`).join('');
+}
+function addTagPrompt() {
+  const mid = $('#am').value;
+  const m = mat(mid);
+  if(!m) return;
+  const tag = prompt('Nome da nova tag (ex: PÓRTICO):');
+  if(tag && tag.trim()) {
+    const t = tag.trim().toUpperCase();
+    if(!m.tags.includes(t)) {
+      m.tags.push(t);
+      save();
+      updateTagsSelect(t);
+    }
+  }
+}
+function rmPendingImg(i) { pendingImages.splice(i,1); renderPreview(); }
+function renderPreview(){
+  const el=$('#paste-preview');if(!el)return;
+  let html='';
+  if(pendingPdf) html+='<div style="margin-bottom:6px"><small>📄 '+esc(pendingPdf.name)+' <button class="s r" onclick="pendingPdf=null;renderPreview()">✕</button></small></div>';
+  if(pendingImages.length) html+='<div class="thumbs">'+pendingImages.map((img,i)=>'<div style="position:relative"><img src="'+img.b64+'" class="thumb"><button class="s r" style="position:absolute;top:-6px;right:-6px;padding:2px 6px;border-radius:50%" onclick="rmPendingImg('+i+')">✕</button></div>').join('')+'</div>';
+  el.innerHTML=html;
+}
+function handleFileSelect(e) {
+  Array.from(e.target.files).forEach(f => {
+    if(f.type.startsWith('image/')) {
+      const r = new FileReader();
+      r.onload = ev => { pendingImages.push({file: f, b64: ev.target.result}); renderPreview(); };
+      r.readAsDataURL(f);
+    } else if(ehPdf(f)) {
+      pendingPdf = f;
+    }
+  });
+  renderPreview();
+  e.target.value='';
+}
+document.addEventListener('paste', e => {
+  if (tab !== 'acervo') return;
+  const items = (e.clipboardData || e.originalEvent.clipboardData).items;
+  let hasImage = false;
+  for (let index in items) {
+    const item = items[index];
+    if (item.kind === 'file' && item.type.startsWith('image/')) {
+      hasImage = true;
+      const blob = item.getAsFile();
+      const r = new FileReader();
+      r.onload = ev => { pendingImages.push({ file: blob, b64: ev.target.result }); renderPreview(); };
+      r.readAsDataURL(blob);
+    }
+  }
+  if (hasImage) e.preventDefault();
+});
+
+function toggleFolder(type, id, isOpen) {
+  const key = type + '_' + id;
+  if (isOpen) openFolders.add(key); else openFolders.delete(key);
+}
+
+function vAcervoList() {
+  const el = $('#lista'); if(!el) return;
+  const q = normStr(qAcervo);
+  
+  let html = '';
+  const validMids = new Set(S.materias.map(m => m.id));
+
+  const renderMateria = (m) => {
+    const mItens = S.itens.filter(i => i.mid === m.id);
+    if (!mItens.length) return;
+
+    const grupos = {};
+    mItens.forEach(i => {
+      const t = i.tag || 'Sem Tag';
+      if (!grupos[t]) grupos[t] = [];
+      grupos[t].push(i);
+    });
+
+    let temMatch = false;
+    const renderGrupo = (tagName, itens) => {
+      const itensFiltrados = itens.filter(i => 
+        normStr((i.titulo||'')+' '+(i.com||'')+' '+(i.rev||'')+' '+(i.feitas||'')).includes(q)
+      ).sort((a,b) => (a.titulo||'').localeCompare(b.titulo||'', undefined, { numeric: true, sensitivity: 'base' }));
+
+      if (q && !itensFiltrados.length && !normStr(tagName).includes(q)) return '';
+      if (itensFiltrados.length) temMatch = true;
+
+      const isOpen = openFolders.has('tag_'+m.id+'_'+tagName) || (q ? ' open' : '');
+      return `<details class="tag-folder" ${isOpen?'open':''} ontoggle="toggleFolder('tag', '${m.id}_${tagName}', this.open)">
+        <summary>🏷️ ${esc(tagName)} (${itens.length})</summary>
+        <div>${itensFiltrados.map(renderItem).join('')}</div>
+      </details>`;
+    };
+
+    const comTag = Object.keys(grupos).filter(k => k !== 'Sem Tag').sort();
+    let inner = comTag.map(t => renderGrupo(t, grupos[t])).join('');
+    if (grupos['Sem Tag']) inner += renderGrupo('Sem Tag', grupos['Sem Tag']);
+
+    if (temMatch || (q && normStr(m.nome).includes(q))) {
+      const isOpen = openFolders.has('mat_'+m.id) || (q ? ' open' : '');
+      html += `<details class="materia-folder" ${isOpen?'open':''} ontoggle="toggleFolder('mat', '${m.id}', this.open)">
+        <summary>📚 ${esc(m.nome)} ${m.status === 'concluida' ? '(Concluída)' : ''}</summary>
+        <div style="padding:8px">${inner}</div>
+      </details>`;
+    }
+  };
+
+  S.materias.forEach(renderMateria);
+
+  // Tratamento de Itens Órfãos
+  const orphans = S.itens.filter(i => !validMids.has(i.mid));
+  if (orphans.length) {
+    const mItens = orphans;
+    const grupos = {};
+    mItens.forEach(i => {
+      const t = i.tag || 'Sem Tag';
+      if (!grupos[t]) grupos[t] = [];
+      grupos[t].push(i);
+    });
+    let inner = '';
+    for (const t of Object.keys(grupos).sort()) {
+      const itensFiltrados = grupos[t].filter(i => normStr((i.titulo||'')+' '+(i.com||'')).includes(q)).sort((a,b) => (a.titulo||'').localeCompare(b.titulo||'', undefined, { numeric: true }));
+      if (q && !itensFiltrados.length) continue;
+      const isOpen = openFolders.has('tag_orphan_'+t) || (q ? ' open' : '');
+      inner += `<details class="tag-folder" ${isOpen?'open':''} ontoggle="toggleFolder('tag', 'orphan_${t}', this.open)"><summary>🏷️ ${esc(t)}</summary><div>${itensFiltrados.map(renderItem).join('')}</div></details>`;
+    }
+    if (inner) {
+      const isOpen = openFolders.has('mat_orphan') || (q ? ' open' : '');
+      html += `<details class="materia-folder" ${isOpen?'open':''} ontoggle="toggleFolder('mat', 'orphan', this.open)"><summary>📚 ⚠️ Atividades sem Matéria (Antigas)</summary><div style="padding:8px">${inner}</div></details>`;
+    }
+  }
+
+  el.innerHTML = html || '<p class="vz">Nada por aqui ainda.</p>';
+
+  // Resolver thumbnails do Drive de forma segura (contornando bloqueios do Safari)
+  document.querySelectorAll('img[data-imgid]').forEach(async (imgEl) => {
+    const id = imgEl.dataset.imgid;
+    if(imgBlobCache[id]) { imgEl.src = imgBlobCache[id]; return; }
+    if(tok && pronto) {
+      try {
+        const r = await drv('https://www.googleapis.com/drive/v3/files/'+id+'?alt=media');
+        const blob = await r.blob();
+        const url = URL.createObjectURL(blob);
+        imgBlobCache[id] = url;
+        imgEl.src = url;
+      } catch(e) { /* fallback para link direto se falhar */ }
+    }
+  });
+}
+
+function renderItem(i) {
+  const m = mat(i.mid) || {nome:'?'};
+  const lk = /^https?:\/\//i.test(i.link||'') ? ` · <a href="${esc(i.link)}" target="_blank" rel="noopener">abrir link</a>` : '';
+  const pl = i.pdf && /^[\w-]+$/.test(i.pdf.id) ? `<small><a href="https://drive.google.com/file/d/${i.pdf.id}/view" target="_blank" rel="noopener">📄 ${esc(i.pdf.nome)}</a></small>` : '';
+  
+  let imgsHtml = '';
+  if (i.imagens && i.imagens.length) {
+    imgsHtml = '<div class="thumbs">' + i.imagens.map(img => 
+      `<img data-imgid="${img.id}" src="https://drive.google.com/thumbnail?id=${img.id}&sz=w200" class="thumb" onclick="window.open('https://drive.google.com/file/d/${img.id}/view','_blank')" title="${esc(img.nome)}">`
+    ).join('') + '</div>';
+  }
+
+  return `<div class="c col item-acervo">
+    <b>${esc(i.titulo)}</b>
+    <small>${esc(m.nome)}${lk}</small>
+    ${pl}${imgsHtml}
+    ${i.feitas ? `<small>Fiz: ${esc(i.feitas)}</small>` : ''}
+    ${i.rev ? `<small>Revisar: ${esc(i.rev)}</small>` : ''}
+    ${i.com ? `<small class="cm">${linkify(i.com)}</small>` : ''}
+    <span class="acts">
+      <button class="s" onclick="editItem('${i.id}')">✏️ Editar</button>
+      <button class="s" onclick="agendarItem('${i.id}')">📅 Revisão</button>
+      ${i.pdf ? `<button class="s" onclick="rmPdf('${i.id}')">Remover PDF</button>` : `<button class="s" onclick="anexar('${i.id}')">📎 Anexar PDF</button>`}
+      <button class="s r" onclick="delItem('${i.id}')">✕</button>
+    </span>
+  </div>`;
+}
+function lista() { vAcervoList(); }
+
+/* COMPRESSÃO DE IMAGEM */
+async function compressImage(file) {
+  return new Promise((resolve) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = (e) => {
+      const img = new Image();
+      img.src = e.target.result;
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width, height = img.height;
+        const MAX = 1600;
+        if (width > MAX || height > MAX) {
+          if (width > height) { height = Math.round((height * MAX) / width); width = MAX; }
+          else { width = Math.round((width * MAX) / height); height = MAX; }
+        }
+        canvas.width = width; canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+        canvas.toBlob((blob) => resolve(new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", { type: 'image/jpeg' })), 'image/jpeg', 0.8);
+      };
+    };
+  });
+}
+
 async function addItem(){
   const t=$('#at').value.trim();if(!t){toast('Digite o título');return}
-  const m=mat($('#am').value),fi=$('#ap')&&$('#ap').files[0];
-  const it={id:uid(),mid:m.id,titulo:t,link:$('#al').value.trim(),feitas:$('#af').value.trim(),rev:$('#ar').value.trim(),com:$('#ac').value.trim(),criado:hoje(),pdf:null};
-  if(fi){
-    if(!ehPdf(fi)){toast('O arquivo precisa ser um PDF');return}
-    if(!tok||!pronto){toast('Conecte ao Drive em Config para anexar PDF');return}
+  const m=mat($('#am').value),fi=pendingPdf;
+  const it={id:uid(),mid:m.id,titulo:t,link:$('#al').value.trim(),feitas:$('#af').value.trim(),rev:$('#ar').value.trim(),com:$('#ac').value.trim(),criado:hoje(),pdf:null,imagens:[],tag:$('#atag').value};
+  
+  if(fi && ehPdf(fi)){
+    if(!tok||!pronto){toast('Conecte ao Drive para anexar PDF');return}
     toast('Enviando PDF…');
-    try{it.pdf=await enviarPdf(fi,m)}catch(e){toast('Falha ao enviar o PDF: '+e.message);return}
+    try{it.pdf=await enviarArquivo(fi,m)}catch(e){toast('Falha ao enviar PDF: '+e.message);return}
   }
+
+  if(pendingImages.length){
+    if(!tok||!pronto){toast('Conecte ao Drive para anexar Imagens');return}
+    toast('Otimizando e enviando imagens…');
+    try {
+      for (let p of pendingImages) {
+        const compFile = await compressImage(p.file);
+        it.imagens.push(await enviarArquivo(compFile, m));
+      }
+    } catch(e) { toast('Falha ao enviar imagem: '+e.message); return; }
+  }
+
   S.itens.push(it);
-  const msg=ganha(5);save();render();toast(it.pdf?'PDF enviado ✔ · '+msg:msg);
+  pendingImages = [];
+  pendingPdf = null;
+  const msg=ganha(5);save();render();toast(msg);
 }
 const ehPdf=f=>f.type==='application/pdf'||/\.pdf$/i.test(f.name);
 function anexar(id){
@@ -455,44 +741,70 @@ function anexar(id){
     const fi=inp.files[0];if(!fi)return;
     if(!ehPdf(fi)){toast('O arquivo precisa ser um PDF');return}
     toast('Enviando PDF…');
-    try{i.pdf=await enviarPdf(fi,m);save();render();toast('PDF anexado ✔')}catch(e){toast('Falha ao enviar o PDF: '+e.message)}
+    try{i.pdf=await enviarArquivo(fi,m);save();lista();toast('PDF anexado ✔')}catch(e){toast('Falha ao enviar o PDF: '+e.message)}
   };
   inp.click();
 }
 async function trashPdf(fid){
-  try{await drv('https://www.googleapis.com/drive/v3/files/'+fid,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({trashed:true})});toast('PDF enviado para a lixeira do Drive')}
-  catch(e){toast('Não consegui mexer no PDF do Drive')}
+  try{await drv('https://www.googleapis.com/drive/v3/files/'+fid,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({trashed:true})});toast('Arquivo enviado para a lixeira do Drive')}
+  catch(e){toast('Não consegui mexer no arquivo do Drive')}
 }
 async function rmPdf(id){
   const i=S.itens.find(x=>x.id===id);if(!i||!i.pdf)return;
   if(!confirm('Remover o PDF desta atividade?'))return;
   const lixo=tok&&pronto&&confirm('Mandar também o arquivo para a lixeira do Drive?\n\nOK = mandar para a lixeira\nCancelar = manter o arquivo no Drive');
-  const f=i.pdf.id;i.pdf=null;save();render();
+  const f=i.pdf.id;i.pdf=null;save();lista();
   if(lixo)await trashPdf(f);
 }
-function lista(){
-  const el=$('#lista');if(!el)return;
-  const q=(qAcervo||'').toLowerCase();
-  const r=S.itens.filter(i=>((i.titulo||'')+' '+(i.com||'')+' '+(i.rev||'')+' '+(i.feitas||'')+' '+(mat(i.mid)||{nome:''}).nome).toLowerCase().includes(q)).sort((a,b)=>(b.criado||'').localeCompare(a.criado||''));
-  el.innerHTML=r.map(i=>{
-    const m=mat(i.mid)||{nome:'?'};
-    const lk=/^https?:\/\//i.test(i.link||'')?' · <a href="'+esc(i.link)+'" target="_blank" rel="noopener">abrir PDF</a>':'';
-    const pl=i.pdf&&/^[\w-]+$/.test(i.pdf.id)?'<small><a href="https://drive.google.com/file/d/'+i.pdf.id+'/view" target="_blank" rel="noopener">📄 '+esc(i.pdf.nome)+'</a></small>':'';
-    return '<div class="c col"><b>'+esc(i.titulo)+'</b><small>'+esc(m.nome)+lk+'</small>'+pl+(i.feitas?'<small>Fiz: '+esc(i.feitas)+'</small>':'')+(i.rev?'<small>Revisar: '+esc(i.rev)+'</small>':'')+(i.com?'<small class="cm">'+esc(i.com)+'</small>':'')+'<span class="acts"><button class="s" onclick="edit(\''+i.id+'\')">Editar notas</button>'+(i.pdf?'<button class="s" onclick="rmPdf(\''+i.id+'\')">Remover PDF</button>':'<button class="s" onclick="anexar(\''+i.id+'\')">📎 Anexar PDF</button>')+'<button class="s r" onclick="delItem(\''+i.id+'\')">✕</button></span></div>';
-  }).join('')||'<p class="vz">Nada por aqui ainda.</p>';
+function editItem(id){
+  const i=S.itens.find(x=>x.id===id); if(!i) return;
+  const m=mat(i.mid);
+  $('#modal').innerHTML='<div class="ov"><div class="md"><b>Editar Atividade</b><label>Título<input id="ei_t" value="'+esc(i.titulo)+'"></label><label>Tag<select id="ei_tag"><option value="">Sem tag</option>'+(m.tags||[]).map(t=>'<option value="'+esc(t)+'" '+(t===i.tag?'selected':'')+'>'+esc(t)+'</option>').join('')+'</select></label><label>Link<input id="ei_l" value="'+esc(i.link||'')+'"></label><label>Questões Feitas<input id="ei_f" value="'+esc(i.feitas||'')+'"></label><label>Questões para Revisar<input id="ei_r" value="'+esc(i.rev||'')+'"></label><label>Comentários<textarea id="ei_c" rows="2">'+esc(i.com||'')+'</textarea></label><button onclick="salvarItem(\''+id+'\')">Salvar</button><button class="s r" onclick="fechaM()">Cancelar</button></div></div>';
 }
-function edit(id){
+function salvarItem(id){
   const i=S.itens.find(x=>x.id===id);
-  const a=prompt('Questões para revisar:',i.rev||'');if(a===null)return;
-  const b=prompt('Comentários:',i.com||'');if(b===null)return;
-  i.rev=a.trim();i.com=b.trim();save();lista();
+  i.titulo=$('#ei_t').value.trim()||i.titulo;
+  i.tag=$('#ei_tag').value;
+  i.link=$('#ei_l').value.trim();
+  i.feitas=$('#ei_f').value.trim();
+  i.rev=$('#ei_r').value.trim();
+  i.com=$('#ei_c').value.trim();
+  save();fechaM();lista();toast('Atividade atualizada');
 }
 async function delItem(id){
   const i=S.itens.find(x=>x.id===id);if(!i)return;
   if(!confirm('Apagar esta atividade?'))return;
-  const lixo=i.pdf&&tok&&pronto&&confirm('Mandar também o PDF anexado para a lixeira do Drive?');
-  S.itens=S.itens.filter(x=>x.id!==id);save();render();
-  if(lixo)await trashPdf(i.pdf.id);
+  const lixo=(i.pdf||i.imagens.length)&&tok&&pronto&&confirm('Mandar também os arquivos (PDF/Imagens) para a lixeira do Drive?');
+  const fids = [];
+  if(i.pdf) fids.push(i.pdf.id);
+  if(i.imagens) i.imagens.forEach(img => fids.push(img.id));
+  
+  S.itens=S.itens.filter(x=>x.id!==id);save();lista();
+  if(lixo) { for(let f of fids) await trashPdf(f); }
+}
+
+/* ---------- REVISÃO ESPAÇADA ---------- */
+function agendarItem(itemId) {
+  const it = S.itens.find(x=>x.id===itemId); if(!it) return;
+  const m = mat(it.mid); if(!m) return;
+  $('#modal').innerHTML = '<div class="ov"><div class="md"><b>Agendar Revisão</b><small>'+esc(it.titulo)+'</small><label><input type="checkbox" id="rev_1" checked style="width:auto;margin-right:6px"> Amanhã (+1 dia)</label><label><input type="checkbox" id="rev_7" checked style="width:auto;margin-right:6px"> Em 1 semana (+7 dias)</label><label><input type="checkbox" id="rev_30" checked style="width:auto;margin-right:6px"> Em 1 mês (+30 dias)</label><button onclick="salvarRev(\''+itemId+'\')">Agendar Selecionadas</button><button class="s r" onclick="fechaM()">Cancelar</button></div></div>';
+}
+function salvarRev(itemId) {
+  const it = S.itens.find(x=>x.id===itemId);
+  const m = mat(it.mid);
+  const dias = [];
+  if($('#rev_1').checked) dias.push(1);
+  if($('#rev_7').checked) dias.push(7);
+  if($('#rev_30').checked) dias.push(30);
+  if(!dias.length) { fechaM(); return; }
+  
+  dias.forEach(d => {
+    S.agenda.push({
+      id: uid(), mid: m.id, data: addD(hoje(), d), hora: '',
+      min: 15, com: 'Revisão: ' + it.titulo, feito: false
+    });
+  });
+  save(); fechaM(); render(); toast('Revisões agendadas!');
 }
 
 /* ---------- GOOGLE DRIVE ---------- */
@@ -582,24 +894,25 @@ async function pasta(nome,pai,chave){
   }
   S.pastas[chave]=id;save();return id;
 }
-async function enviarPdf(file,m){
+async function enviarArquivo(file,m){
   if(!tok||!pronto)throw new Error('conecte ao Drive em Config');
-  if(file.size>50*1048576)throw new Error('o PDF passa de 50 MB');
+  if(file.size>150*1048576)throw new Error('o arquivo passa de 150 MB');
   const raiz=await pasta('Controle de Estudos',null,'raiz'),pa=await pasta(m.nome,raiz,m.id);
-  const meta=JSON.stringify({name:file.name,parents:[pa],mimeType:'application/pdf'});
+  const meta=JSON.stringify({name:file.name,parents:[pa],mimeType:file.type||'application/octet-stream'});
   let r;
   if(file.size<=4.5*1048576){
-    const b='estudosfronteirapdf';
-    r=await drv('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',{method:'POST',headers:{'Content-Type':'multipart/related; boundary='+b},body:new Blob(['--'+b+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+meta+'\r\n--'+b+'\r\nContent-Type: application/pdf\r\n\r\n',file,'\r\n--'+b+'--'])});
+    const b='estudosfronteirafile';
+    r=await drv('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',{method:'POST',headers:{'Content-Type':'multipart/related; boundary='+b},body:new Blob(['--'+b+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+meta+'\r\n--'+b+'\r\nContent-Type: '+(file.type||'application/octet-stream')+'\r\n\r\n',file,'\r\n--'+b+'--'])});
   }else{
-    const ini=await drv('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id',{method:'POST',headers:{'Content-Type':'application/json; charset=UTF-8','X-Upload-Content-Type':'application/pdf'},body:meta});
+    const ini=await drv('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id',{method:'POST',headers:{'Content-Type':'application/json; charset=UTF-8','X-Upload-Content-Type':file.type||'application/octet-stream'},body:meta});
     const loc=ini.headers.get('Location');if(!loc)throw new Error('o Drive não devolveu o endereço de envio');
-    r=await fetch(loc,{method:'PUT',headers:{'Content-Type':'application/pdf'},body:file});
+    r=await fetch(loc,{method:'PUT',headers:{'Content-Type':file.type||'application/octet-stream'},body:file});
     if(!r.ok)throw new Error('HTTP '+r.status);
   }
   const j=await r.json();if(!j.id)throw new Error('resposta sem ID');
   return {id:j.id,nome:file.name};
 }
+
 function tickSync(){
   if(!tok||!pronto||sujo||subindo||document.visibilityState!=='visible'||Date.now()>expira-60000)return;
   const t=document.activeElement&&document.activeElement.tagName;if(/^(INPUT|TEXTAREA|SELECT)$/.test(t||''))return;
@@ -638,7 +951,7 @@ function vCfg(){
   return '<h2>Ciclo de estudos</h2><div class="f col"><label>Horas líquidas de estudo em um ciclo<input id="ch" type="number" step="0.5" min="1" max="100" value="'+S.cfg.horas+'"></label><label>% do tempo para matérias com dificuldade (o resto vai para as tranquilas)<input id="cp" type="number" min="1" max="99" value="'+S.cfg.pctDif+'"></label><button onclick="saveCfg()">Salvar</button></div><p class="vz">O ciclo só reinicia quando todas as matérias baterem a meta. Mudar as horas nunca apaga o que você já estudou.</p>'
    +'<h2>Google Drive</h2><p class="vz sy">'+esc(msgSync)+'</p><p class="vz" style="margin:0">ID do cliente embutido no app: '+esc(CID.slice(0,10))+'…</p><div class="f col"><div class="f"><button onclick="conectar(\'manual\')">Conectar ao Drive</button><button class="s" onclick="conectar(\'manual\',true)">Trocar de conta</button><button class="r" onclick="desconectar()">Desconectar</button></div></div><p class="vz">Salva o arquivo '+NOME+' no seu Drive a cada alteração. Funciona só com o app aberto por um endereço https://. O Google libera o acesso por 1 hora de cada vez: o app renova sozinho quando você toca em qualquer botão (uma janelinha pode piscar). Enquanto isso, as alterações ficam guardadas no aparelho e sobem na reconexão.</p>'
    +'<h2>Backup manual</h2><button onclick="exp()">Exportar JSON</button> <label class="btn" style="display:inline-block;color:#fff">Importar<input type="file" accept=".json,application/json" hidden onchange="imp(event)"></label>'
-   +'<h2>Começar do zero</h2><p class="vz">Apaga matérias, atividades, revisões, horas, gráficos e XP (mantém suas horas do ciclo e a conexão com o Drive). Baixa um backup antes. Se o Drive estiver conectado, o arquivo dele também é zerado, e os outros aparelhos recebem o app vazio ao sincronizar. PDFs já enviados ficam no Drive.</p><button class="r" onclick="zerar()">Zerar tudo</button>';
+   +'<h2>Começar do zero</h2><p class="vz">Apaga matérias, atividades, revisões, horas, gráficos e XP (mantém suas horas do ciclo e a conexão com o Drive). Baixa um backup antes. Se o Drive estiver conectado, o arquivo dele também é zerado, e os outros aparelhos recebem o app vazio ao sincronizar. PDFs e imagens já enviados ficam no Drive.</p><button class="r" onclick="zerar()">Zerar tudo</button>';
 }
 function zerar(){
   if(!confirm('Apagar TODAS as matérias, atividades, revisões, horas e XP'+(tok?' e também zerar o arquivo do Drive':'')+'?\n\nUm backup será baixado antes.'))return;
@@ -680,7 +993,23 @@ function render(){
   $('#tb').innerHTML=tbar();
   $('#nav').innerHTML=[['ciclo','📚 Ciclo'],['agenda','📅 Agenda'],['mat','📋 Matérias'],['acervo','📁 Acervo'],['graf','📊 Gráficos'],['cfg','⚙ Config']].map(a=>'<button class="'+(tab===a[0]?'on':'')+'" onclick="go(\''+a[0]+'\')">'+a[1]+'</button>').join('');
   $('#app').innerHTML={ciclo:vCiclo,agenda:vAgenda,mat:vMat,acervo:vAcervo,graf:vGraf,cfg:vCfg}[tab]();
-  if(tab==='acervo'&&$('#lista'))lista();
+  
+  if(tab==='acervo') {
+    updateTagsSelect();
+    renderPreview();
+    lista();
+    
+    const pz = $('#paste-zone');
+    if(pz) {
+      pz.onclick = () => $('#ap').click();
+      pz.ondragover = e => { e.preventDefault(); pz.classList.add('hl'); };
+      pz.ondragleave = () => pz.classList.remove('hl');
+      pz.ondrop = e => {
+        e.preventDefault(); pz.classList.remove('hl');
+        handleFileSelect({target: {files: e.dataTransfer.files, value: ''}});
+      };
+    }
+  }
 }
 render();initDrive();
 </script>
