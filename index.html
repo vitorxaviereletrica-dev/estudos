@@ -484,13 +484,14 @@ function vAcervo(){
     +'<select id="am" onchange="updateTagsSelect()" style="flex:2">'+optsM+'</select>'
     +'<select id="atag" style="flex:1"><option value="">Sem tag</option></select>'
     +'<button class="s" onclick="addTagPrompt()" style="flex:0 0 auto">＋ Tag</button>'
+    +'<button class="s r" onclick="rmTagUI()" style="flex:0 0 auto">✕ Tag</button>'
     +'</div>'
     +'<input id="at" placeholder="Título (ex: 01. Lista Pórtico)">'
     +'<input id="al" placeholder="Link (opcional)">'
     +'<input id="af" placeholder="Questões que fiz (ex.: 1-10)">'
     +'<input id="ar" placeholder="Questões para revisar (ex.: 4, 7)">'
     +'<textarea id="ac" rows="2" placeholder="Comentários / links soltos"></textarea>'
-    +'<div id="paste-zone" class="paste-zone">Cole imagens ou PDFs aqui (Ctrl+V) ou clique para escolher</div>'
+    +'<div id="paste-zone" class="paste-zone" style="font-weight:bold;cursor:pointer;padding:20px">📷 Toque aqui para escolher Imagens ou PDFs<br><small style="font-weight:normal">(No PC, você pode colar com Ctrl+V)</small></div>'
     +'<input type="file" id="ap" accept="application/pdf,.pdf,image/*" multiple style="display:none" onchange="handleFileSelect(event)">'
     +'<div id="paste-preview"></div>'
     +'<button onclick="addItem()">Salvar no acervo</button></div>'
@@ -517,6 +518,41 @@ function addTagPrompt() {
       updateTagsSelect(t);
     }
   }
+}
+function rmTagUI() {
+  const mid = $('#am').value;
+  const m = mat(mid);
+  if (!m || !m.tags.length) { toast('Nenhuma tag para remover nesta matéria'); return; }
+
+  let html = '<div class="ov"><div class="md"><b>Remover Tag de ' + esc(m.nome) + '</b><small>Ao remover, as atividades desta tag ficarão "Sem tag".</small><div class="f col">';
+  m.tags.forEach((t, idx) => {
+    html += '<button class="s r" onclick="confirmRmTag(' + idx + ')" style="text-align:left; margin-bottom:4px">✕ ' + esc(t) + '</button>';
+  });
+  html += '</div><button class="s" onclick="fechaM()">Cancelar</button></div></div>';
+  $('#modal').innerHTML = html;
+}
+function confirmRmTag(idx) {
+  const mid = $('#am').value;
+  const m = mat(mid);
+  if (!m || !m.tags[idx]) return;
+  const tag = m.tags[idx];
+  
+  if (!confirm('Tem certeza que deseja remover a tag "' + tag + '" de ' + m.nome + '?')) return;
+
+  m.tags.splice(idx, 1); // Remove a tag da lista da matéria
+
+  // Resgata os itens que estavam nessa tag e coloca como "Sem Tag"
+  S.itens.forEach(i => {
+    if (i.mid === m.id && i.tag === tag) {
+      i.tag = '';
+    }
+  });
+
+  save();
+  fechaM();
+  updateTagsSelect();
+  lista(); // Atualiza a lista do acervo
+  toast('Tag removida');
 }
 function rmPendingImg(i) { pendingImages.splice(i,1); renderPreview(); }
 function renderPreview(){
