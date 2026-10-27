@@ -11,16 +11,27 @@
   --sh:0 1px 2px rgba(28,35,33,.04),0 8px 24px -12px rgba(28,35,33,.12);
   --h0:#ebe6db;--h1:#c6e6c9;--h2:#8fd09a;--h3:#4fae67;--h4:#23743e;
 }
+/* Segue o sistema, a menos que o usuário force o modo claro */
 @media(prefers-color-scheme:dark){
-  :root{--bg:#121614;--card:#1b211e;--ink:#ece8df;--mut:#9aa39e;--bl:#7cc4a8;--bl2:#5aa98b;--ln:#2a322e;--rd:#f08a73;--h0:#232a26;--h1:#1f4a2e;--h2:#2a6e3f;--h3:#3f9c58;--h4:#6fd88a}
-  button{color:#121614}
-  button.r{background:#c4553f;color:#fff}
-  .c.ok b{color:#7ed99a}
+  :root:not(.light){
+    --bg:#121614;--card:#1b211e;--ink:#ece8df;--mut:#9aa39e;--bl:#7cc4a8;--bl2:#5aa98b;--ln:#2a322e;--rd:#f08a73;--h0:#232a26;--h1:#1f4a2e;--h2:#2a6e3f;--h3:#3f9c58;--h4:#6fd88a
+  }
+  :root:not(.light) button{color:#121614}
+  :root:not(.light) button.r{background:#c4553f;color:#fff}
+  :root:not(.light) .c.ok b{color:#7ed99a}
 }
+/* Força o modo escuro se o usuário clicar no botão */
+:root.dark{
+  --bg:#121614;--card:#1b211e;--ink:#ece8df;--mut:#9aa39e;--bl:#7cc4a8;--bl2:#5aa98b;--ln:#2a322e;--rd:#f08a73;--h0:#232a26;--h1:#1f4a2e;--h2:#2a6e3f;--h3:#3f9c58;--h4:#6fd88a
+}
+:root.dark button{color:#121614}
+:root.dark button.r{background:#c4553f;color:#fff}
+:root.dark .c.ok b{color:#7ed99a}
+
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:15.5px/1.5 'DM Sans',system-ui,sans-serif;padding-bottom:96px;-webkit-font-smoothing:antialiased;overflow-x:hidden}
+body{margin:0;background:var(--bg);color:var(--ink);font:15.5px/1.5 'DM Sans',system-ui,sans-serif;padding-bottom:96px;-webkit-font-smoothing:antialiased;overflow-x:hidden;transition:background-color .3s,color .3s}
 header{background:linear-gradient(135deg,#183b34,#24564a 60%,#2f6b5c);color:#f7f3ea;padding:14px 18px 16px;position:sticky;top:0;z-index:5;box-shadow:0 6px 24px -14px rgba(0,0,0,.5)}
-#hd{max-width:900px;margin:0 auto}#hd b{font-family:Fraunces,serif;font-weight:700;letter-spacing:.2px}
+#hd{max-width:900px;margin:0 auto;display:flex;justify-content:space-between;align-items:flex-start;gap:10px}#hd b{font-family:Fraunces,serif;font-weight:700;letter-spacing:.2px}
 .bar{height:6px;background:rgba(255,255,255,.18);border-radius:99px;margin-top:8px;overflow:hidden}
 .bar i{display:block;height:100%;background:linear-gradient(90deg,#e8c170,var(--am));border-radius:99px}
 #hd small{color:#cfe2da}
@@ -33,7 +44,7 @@ nav{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);width:min(680
 nav button{flex:1;padding:10px 2px;border:0;border-radius:13px;background:none;color:var(--mut);font-size:.72rem;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;transition:all .2s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
 nav button:hover{color:var(--ink)}
 nav button.on{color:#fff;background:var(--bl);font-weight:700;box-shadow:none}
-@media(prefers-color-scheme:dark){nav button.on{color:#121614}}
+:root:not(.light) nav button.on{color:#121614}
 .c{background:var(--card);border:1px solid var(--ln);border-radius:16px;padding:14px 16px;margin:10px 0;display:flex;justify-content:space-between;align-items:center;gap:10px;box-shadow:var(--sh);transition:transform .2s,box-shadow .2s}
 .c:hover{box-shadow:0 2px 4px rgba(0,0,0,.04),0 14px 30px -14px rgba(0,0,0,.18)}
 .c.col{flex-direction:column;align-items:flex-start;gap:8px}
@@ -68,6 +79,7 @@ label{display:flex;flex-direction:column;text-align:left;font-size:.85rem;color:
 .cal{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;text-align:center}
 .cal button{padding:9px 0;border-radius:10px;position:relative;font-weight:400;cursor:pointer;background:var(--card);border:1px solid var(--ln);color:var(--ink);display:block}
 .cal button.hj{border-color:var(--am);font-weight:700}.cal button.sl{background:var(--bl);color:var(--card);border-color:var(--bl)}
+:root:not(.light) .cal button.sl{color:#121614}
 .cal u{position:absolute;left:50%;bottom:3px;width:6px;height:6px;margin-left:-3px;border-radius:50%;background:var(--am)}.cal u.ok{background:var(--gr)}
 .cal i{display:block}
 .ov{position:fixed;inset:0;background:rgba(15,20,18,.5);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;z-index:9;padding:14px;animation:fd .2s}
@@ -164,6 +176,30 @@ function hm(ms){const t=Math.round(ms/6e4),h=Math.floor(t/60),m=t%60;return h?h+
 function clk(ms){const s=Math.floor(ms/1000);return pad(Math.floor(s/3600))+':'+pad(Math.floor(s%3600/60))+':'+pad(s%60)}
 const normStr = s => String(s||'').normalize('NFD').replace(/\p{M}/gu,'').toLowerCase();
 function linkify(t){return esc(t).replace(/(https?:\/\/[^\s<]+)/g,'<a href="$1" target="_blank" rel="noopener">$1</a>')}
+
+function isDark() {
+  const saved = localStorage.getItem('theme');
+  if (saved === 'dark') return true;
+  if (saved === 'light') return false;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+function toggleTheme() {
+  const root = document.documentElement;
+  const current = isDark();
+  if (current) {
+    root.classList.remove('dark');
+    root.classList.add('light');
+    localStorage.setItem('theme', 'light');
+  } else {
+    root.classList.remove('light');
+    root.classList.add('dark');
+    localStorage.setItem('theme', 'dark');
+  }
+  render();
+}
+// Carrega o tema salvo antes de renderizar
+if(localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('dark');
+if(localStorage.getItem('theme') === 'light') document.documentElement.classList.add('light');
 
 function norm(r){
   const d=Object.assign(clone(DEF),r);d.cfg=Object.assign({},DEF.cfg,r.cfg);
@@ -1143,7 +1179,14 @@ function imp(e){
 /* ---------- RENDER ---------- */
 function render(){
   const h=hoje(),sq=(S.ultimoDia===h||S.ultimoDia===addD(h,-1))?S.streak:0;
-  $('#hd').innerHTML='<b>Nível '+nivelXP()+'</b> · '+S.xp+' XP · 🔥 '+sq+' dia(s) seguidos<div class="bar"><i style="width:'+(S.xp%100)+'%"></i></div><small class="sy">'+esc(msgSync)+'</small>';
+  $('#hd').innerHTML=`
+    <div style="flex:1">
+      <b>Nível ${nivelXP()}</b> · ${S.xp} XP · 🔥 ${sq} dia(s) seguidos
+      <div class="bar"><i style="width:${S.xp%100}%"></i></div>
+      <small class="sy">${esc(msgSync)}</small>
+    </div>
+    <button class="s" style="background:rgba(255,255,255,.1); border:1px solid rgba(255,255,255,.2); border-radius:50%; width:38px; height:38px; display:flex; align-items:center; justify-content:center; padding:0; font-size:1.2rem; flex-shrink:0; margin-top:4px;" onclick="toggleTheme()" title="Mudar tema">${isDark()?'☀️':'🌙'}</button>
+  `;
   $('#tb').innerHTML=tbar();
   $('#nav').innerHTML=[['ciclo','📚 Ciclo'],['agenda','📅 Agenda'],['mat','📋 Matérias'],['acervo','📁 Acervo'],['graf','📊 Gráficos'],['cfg','⚙ Config']].map(a=>'<button class="'+(tab===a[0]?'on':'')+'" onclick="go(\''+a[0]+'\')">'+a[1]+'</button>').join('');
   $('#app').innerHTML={ciclo:vCiclo,agenda:vAgenda,mat:vMat,acervo:vAcervo,graf:vGraf,cfg:vCfg}[tab]();
