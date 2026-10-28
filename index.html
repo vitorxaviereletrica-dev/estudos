@@ -11,19 +11,13 @@
   --sh:0 1px 2px rgba(28,35,33,.04),0 8px 24px -12px rgba(28,35,33,.12);
   --h0:#ebe6db;--h1:#c6e6c9;--h2:#8fd09a;--h3:#4fae67;--h4:#23743e;
 }
-/* Segue o sistema, a menos que o usuário force o modo claro */
 @media(prefers-color-scheme:dark){
-  :root:not(.light){
-    --bg:#121614;--card:#1b211e;--ink:#ece8df;--mut:#9aa39e;--bl:#7cc4a8;--bl2:#5aa98b;--ln:#2a322e;--rd:#f08a73;--h0:#232a26;--h1:#1f4a2e;--h2:#2a6e3f;--h3:#3f9c58;--h4:#6fd88a
-  }
+  :root:not(.light){ --bg:#121614;--card:#1b211e;--ink:#ece8df;--mut:#9aa39e;--bl:#7cc4a8;--bl2:#5aa98b;--ln:#2a322e;--rd:#f08a73;--h0:#232a26;--h1:#1f4a2e;--h2:#2a6e3f;--h3:#3f9c58;--h4:#6fd88a }
   :root:not(.light) button{color:#121614}
   :root:not(.light) button.r{background:#c4553f;color:#fff}
   :root:not(.light) .c.ok b{color:#7ed99a}
 }
-/* Força o modo escuro se o usuário clicar no botão */
-:root.dark{
-  --bg:#121614;--card:#1b211e;--ink:#ece8df;--mut:#9aa39e;--bl:#7cc4a8;--bl2:#5aa98b;--ln:#2a322e;--rd:#f08a73;--h0:#232a26;--h1:#1f4a2e;--h2:#2a6e3f;--h3:#3f9c58;--h4:#6fd88a
-}
+:root.dark{ --bg:#121614;--card:#1b211e;--ink:#ece8df;--mut:#9aa39e;--bl:#7cc4a8;--bl2:#5aa98b;--ln:#2a322e;--rd:#f08a73;--h0:#232a26;--h1:#1f4a2e;--h2:#2a6e3f;--h3:#3f9c58;--h4:#6fd88a }
 :root.dark button{color:#121614}
 :root.dark button.r{background:#c4553f;color:#fff}
 :root.dark .c.ok b{color:#7ed99a}
@@ -105,7 +99,6 @@ details[open]>summary{border-bottom:1px solid var(--ln)}
 .paste-zone{border:2px dashed color-mix(in srgb,var(--bl2) 50%,transparent);border-radius:14px;padding:18px;text-align:center;color:var(--bl2);font-size:.9em;background:color-mix(in srgb,var(--bl2) 5%,transparent);margin-bottom:10px;width:100%;word-break:break-word}
 .paste-zone.hl{background:color-mix(in srgb,var(--am) 18%,transparent);border-color:var(--am)}
 
-/* Heatmap */
 .heat{background:var(--card);border:1px solid var(--ln);border-radius:16px;padding:14px 16px;margin:18px 0 6px;box-shadow:var(--sh)}
 .heat-top{display:flex;justify-content:space-between;align-items:baseline;gap:8px;flex-wrap:wrap;margin-bottom:10px}
 .heat-top b{font-family:Fraunces,serif;font-size:1.05rem}
@@ -121,7 +114,6 @@ details[open]>summary{border-bottom:1px solid var(--ln)}
 .heat-lg{display:flex;align-items:center;justify-content:flex-end;gap:3px;margin-top:8px}
 .heat-lg small{font-size:.68rem;margin:0 4px}
 .heat-lg i{width:11px;height:11px}
-
 .heat-g i:not(.hx){cursor:pointer}.heat-g i:not(.hx):hover{outline:1.5px solid var(--ink);outline-offset:1px}
 .sum{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0}
 .st{background:var(--card);border:1px solid var(--ln);border-radius:16px;padding:12px 14px;box-shadow:var(--sh);display:flex;flex-direction:column;gap:2px;min-width:0}
@@ -168,8 +160,34 @@ nav.n7 button{gap:0}nav.n7 button span{display:block;max-width:100%;overflow:hid
 <nav id="nav"></nav>
 <div id="modal"></div>
 <div id="toast"></div>
-<script>
-const KEY='estudos_v1',BASE='estudos_base',NOME='controle-estudos-dados.json',GR='#2e9e5b';
+
+<script type="module">
+// =========================================================================
+// 1. CONFIGURAÇÃO DO FIREBASE
+// =========================================================================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, signInAnonymously, onAuthStateChanged, EmailAuthProvider, linkWithCredential, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getStorage, ref, uploadBytes, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDUC3Ph1Mn-0WXLMmrIFlUbM7O7-wiEF_g",
+  authDomain: "meu-controle-estudos-2a2bb.firebaseapp.com",
+  projectId: "meu-controle-estudos-2a2bb",
+  storageBucket: "meu-controle-estudos-2a2bb.firebasestorage.app",
+  messagingSenderId: "514295721884",
+  appId: "1:514295721884:web:9837b6226b318d1d2e6259"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+// =========================================================================
+// 2. LÓGICA DO APLICATIVO
+// =========================================================================
+const KEY='estudos_v1',GR='#2e9e5b';
 const DC=['#e4572e','#f08a24','#c8403a','#f5b041'],TC=['#2e86ab','#5b9bd5','#3a6ea5','#6fb3b8'];
 const DEF={materias:[],itens:[],agenda:[],estudo:{},hist:{},dias:{},diasM:{},pastas:{},bonus:{},timer:null,ciclo:1,cicloInicio:'',xp:0,streak:0,ultimoDia:'',atualizado:0,simulados:[],simAtual:null,cfg:{horas:10,pctDif:80}};
 const MESES=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
@@ -200,18 +218,10 @@ function isDark() {
 function toggleTheme() {
   const root = document.documentElement;
   const current = isDark();
-  if (current) {
-    root.classList.remove('dark');
-    root.classList.add('light');
-    localStorage.setItem('theme', 'light');
-  } else {
-    root.classList.remove('light');
-    root.classList.add('dark');
-    localStorage.setItem('theme', 'dark');
-  }
+  if (current) { root.classList.remove('dark'); root.classList.add('light'); localStorage.setItem('theme', 'light'); }
+  else { root.classList.remove('light'); root.classList.add('dark'); localStorage.setItem('theme', 'dark'); }
   render();
 }
-// Carrega o tema salvo antes de renderizar
 if(localStorage.getItem('theme') === 'dark') document.documentElement.classList.add('dark');
 if(localStorage.getItem('theme') === 'light') document.documentElement.classList.add('light');
 
@@ -242,7 +252,7 @@ function norm(r){
   d.itens.forEach(i=>{
     if(typeof i.tag!=='string')i.tag='';
     if(!Array.isArray(i.imagens))i.imagens=[];
-    i.imagens = i.imagens.filter(img => img && /^[\w-]+$/.test(img.id));
+    i.imagens = i.imagens.filter(img => img && (img.url || /^[\w-]+$/.test(img.id)));
   });
   if(!Array.isArray(d.simulados))d.simulados=[];
   d.simulados=d.simulados.filter(x=>x&&Array.isArray(x.questoes)&&Array.isArray(x.notas)&&Array.isArray(x.mids));
@@ -255,24 +265,127 @@ function load(){
   try{const r=JSON.parse(localStorage.getItem(KEY));if(r&&Array.isArray(r.materias)&&Array.isArray(r.itens))return norm(r)}catch(e){}
   return clone(DEF);
 }
-let S=load(),tab='ciclo',calM=hoje().slice(0,7),selD=hoje(),qAcervo='',pendingImages=[],pendingPdf=null;
-let tok=null,fid=null,pronto=false,syncT=null,subindo=false,pend=false,expira=0,sujo=false,conectando=false,ultTent=0,msgSync='Drive: desconectado';
-let openFolders = new Set();
-let imgBlobCache = {};
-const SCOPE='https://www.googleapis.com/auth/drive.file',RECON='Drive: reconecta ao tocar em qualquer botão';
 
-function gravaLocal(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){alert('Não consegui salvar neste aparelho. Faça um backup em Config > Exportar.')}}
+let S=load(),tab='ciclo',calM=hoje().slice(0,7),selD=hoje(),qAcervo='',pendingImages=[],pendingPdf=null;
+let user=null, firestoreSynced=false, syncTimeout=null, localChanged=false;
+let openFolders = new Set();
+let msgSync='Nuvem: conectando...';
+
+function gravaLocal(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){alert('Não consegui salvar neste aparelho.')}}
+function setMsg(t){msgSync=t;document.querySelectorAll('.sy').forEach(e=>e.textContent=t)}
+
 function save(){
-  S.atualizado=Date.now();gravaLocal();
-  if(tok&&pronto){sujo=true;clearTimeout(syncT);syncT=setTimeout(subir,2000)}
-  else if(localStorage.getItem('estudos_drive')){sujo=true;setMsg(RECON)}
+  S.atualizado=Date.now();
+  gravaLocal();
+  localChanged=true;
+  
+  if(!user) return;
+  setMsg('Nuvem: salvando...');
+  
+  clearTimeout(syncTimeout);
+  syncTimeout = setTimeout(async () => {
+    try {
+      const dataToSave = clone(S);
+      dataToSave.timer = null;
+      await setDoc(doc(db, "estudos", user.uid), dataToSave);
+      setMsg('Nuvem: sincronizado ✔');
+      localChanged=false;
+    } catch(e) {
+      console.error(e);
+      setMsg('Nuvem: falha ao salvar');
+    }
+  }, 1500);
 }
+
 const mat=id=>S.materias.find(m=>m.id===id);
 const nivelXP=()=>Math.floor(S.xp/100)+1;
 function toast(t){const e=$('#toast');e.textContent=t;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',3200)}
 function ganha(g){const a=nivelXP();S.xp+=g;const up=nivelXP()>a;if(up)fogos();return (g?'+'+g+' XP':'Tempo salvo')+(up?' · NÍVEL '+nivelXP()+'! 🎉':'')}
 function streak(){const h=hoje();if(S.ultimoDia===h)return;S.streak=S.ultimoDia===addD(h,-1)?S.streak+1:1;S.ultimoDia=h}
 function go(k){tab=k;if(k!=='acervo'){pendingImages=[];pendingPdf=null;}render()}
+
+/* ---------- INICIALIZAÇÃO FIREBASE E CONTAS ---------- */
+async function initFirebase() {
+  onAuthStateChanged(auth, async (u) => {
+    if (u) {
+      user = u;
+      setMsg('Nuvem: puxando dados...');
+      try {
+        const snap = await getDoc(doc(db, "estudos", user.uid));
+        if (snap.exists()) {
+          const remote = norm(snap.data());
+          if (remote.atualizado > S.atualizado && !localChanged) {
+            S = remote;
+            gravaLocal();
+            setMsg('Nuvem: dados carregados ✔');
+          } else if (S.atualizado > remote.atualizado) {
+            await setDoc(doc(db, "estudos", user.uid), S);
+            setMsg('Nuvem: dados locais enviados ✔');
+          }
+        } else {
+          await setDoc(doc(db, "estudos", user.uid), S);
+          setMsg('Nuvem: backup criado ✔');
+        }
+        firestoreSynced = true;
+      } catch (e) {
+        console.error(e);
+        setMsg('Nuvem: erro na conexão');
+      }
+      render();
+    } else {
+      // Sem usuário logado, tenta entrar anonimamente
+      try {
+        await signInAnonymously(auth);
+      } catch (e) {
+        console.error("Erro no login anônimo", e);
+        setMsg('Nuvem: erro ao conectar');
+        render();
+      }
+    }
+  });
+}
+
+async function vincularConta() {
+  const email = $('#acc_email').value.trim();
+  const pw = $('#acc_pw').value;
+  if (!email || pw.length < 6) { toast('E-mail válido e senha de no mínimo 6 caracteres.'); return; }
+  
+  toast('Vinculando conta...');
+  try {
+    const cred = EmailAuthProvider.credential(email, pw);
+    await linkWithCredential(auth.currentUser, cred);
+    toast('Conta criada com sucesso! Seus dados estão seguros.');
+    render();
+  } catch (e) {
+    if (e.code === 'auth/email-already-in-use') toast('Este e-mail já está em uso. Use a opção "Fazer Login".');
+    else if (e.code === 'auth/weak-password') toast('A senha é muito fraca.');
+    else toast('Erro: ' + e.message);
+  }
+}
+
+async function fazerLogin() {
+  const email = $('#acc_email').value.trim();
+  const pw = $('#acc_pw').value;
+  if (!email || !pw) { toast('Preencha e-mail e senha.'); return; }
+  
+  toast('Entrando...');
+  try {
+    await signInWithEmailAndPassword(auth, email, pw);
+    toast('Login realizado! Sincronizando seus dados...');
+  } catch (e) {
+    if (e.code === 'auth/invalid-credential' || e.code === 'auth/wrong-password' || e.code === 'auth/user-not-found') {
+      toast('E-mail ou senha incorretos.');
+    } else {
+      toast('Erro: ' + e.message);
+    }
+  }
+}
+
+async function sairConta() {
+  if(!confirm('Deseja realmente sair? Seus dados locais permanecerão neste aparelho, mas você não receberá mais atualizações de outros dispositivos até fazer login novamente.')) return;
+  await signOut(auth);
+  toast('Você saiu da conta.');
+}
 
 /* ---------- FOGOS ---------- */
 function fogos(){
@@ -844,31 +957,18 @@ function vAcervoList() {
   }
 
   el.innerHTML = html || '<p class="vz">Nada por aqui ainda.</p>';
-
-  document.querySelectorAll('img[data-imgid]').forEach(async (imgEl) => {
-    const id = imgEl.dataset.imgid;
-    if(imgBlobCache[id]) { imgEl.src = imgBlobCache[id]; return; }
-    if(tok && pronto) {
-      try {
-        const r = await drv('https://www.googleapis.com/drive/v3/files/'+id+'?alt=media');
-        const blob = await r.blob();
-        const url = URL.createObjectURL(blob);
-        imgBlobCache[id] = url;
-        imgEl.src = url;
-      } catch(e) { }
-    }
-  });
 }
 
 function renderItem(i) {
   const m = mat(i.mid) || {nome:'?'};
   const lk = /^https?:\/\//i.test(i.link||'') ? ` · <a href="${esc(i.link)}" target="_blank" rel="noopener">abrir link</a>` : '';
-  const pl = i.pdf && /^[\w-]+$/.test(i.pdf.id) ? `<small><a href="https://drive.google.com/file/d/${i.pdf.id}/view" target="_blank" rel="noopener">📄 ${esc(i.pdf.nome)}</a></small>` : '';
+  
+  const pl = i.pdf && i.pdf.url ? `<small><a href="${i.pdf.url}" target="_blank" rel="noopener">📄 ${esc(i.pdf.nome)}</a></small>` : '';
   
   let imgsHtml = '';
   if (i.imagens && i.imagens.length) {
     imgsHtml = '<div class="thumbs">' + i.imagens.map(img => 
-      `<img data-imgid="${img.id}" src="https://drive.google.com/thumbnail?id=${img.id}&sz=w200" class="thumb" onclick="window.open('https://drive.google.com/file/d/${img.id}/view','_blank')" title="${esc(img.nome)}">`
+      `<img src="${img.url || 'https://drive.google.com/thumbnail?id='+img.id+'&sz=w200'}" class="thumb" onclick="window.open('${img.url || 'https://drive.google.com/file/d/'+img.id+'/view'}','_blank')" title="${esc(img.nome)}">`
     ).join('') + '</div>';
   }
 
@@ -919,13 +1019,13 @@ async function addItem(){
   const it={id:uid(),mid:m.id,titulo:t,link:$('#al').value.trim(),feitas:$('#af').value.trim(),rev:$('#ar').value.trim(),com:$('#ac').value.trim(),criado:hoje(),pdf:null,imagens:[],tag:$('#atag').value};
   
   if(fi && ehPdf(fi)){
-    if(!tok||!pronto){toast('Conecte ao Drive para anexar PDF');return}
+    if(!user){toast('Conecte ao servidor para anexar PDF');return}
     toast('Enviando PDF…');
     try{it.pdf=await enviarArquivo(fi,m)}catch(e){toast('Falha ao enviar PDF: '+e.message);return}
   }
 
   if(pendingImages.length){
-    if(!tok||!pronto){toast('Conecte ao Drive para anexar Imagens');return}
+    if(!user){toast('Conecte ao servidor para anexar Imagens');return}
     toast('Otimizando e enviando imagens…');
     try {
       for (let p of pendingImages) {
@@ -943,7 +1043,7 @@ async function addItem(){
 const ehPdf=f=>f.type==='application/pdf'||/\.pdf$/i.test(f.name);
 function anexar(id){
   const i=S.itens.find(x=>x.id===id),m=i&&mat(i.mid);if(!m)return;
-  if(!tok||!pronto){toast('Conecte ao Drive em Config para anexar PDF');return}
+  if(!user){toast('Conecte ao servidor para anexar PDF');return}
   const inp=document.createElement('input');inp.type='file';inp.accept='application/pdf,.pdf';
   inp.onchange=async()=>{
     const fi=inp.files[0];if(!fi)return;
@@ -953,16 +1053,22 @@ function anexar(id){
   };
   inp.click();
 }
-async function trashPdf(fid){
-  try{await drv('https://www.googleapis.com/drive/v3/files/'+fid,{method:'PATCH',headers:{'Content-Type':'application/json'},body:JSON.stringify({trashed:true})});toast('Arquivo enviado para a lixeira do Drive')}
-  catch(e){toast('Não consegui mexer no arquivo do Drive')}
+async function trashPdf(path){
+  try{
+    const storageRef = ref(storage, path);
+    await deleteObject(storageRef);
+    toast('Arquivo apagado do servidor.');
+  }catch(e){
+    console.log('Erro ao apagar:', e);
+  }
 }
 async function rmPdf(id){
   const i=S.itens.find(x=>x.id===id);if(!i||!i.pdf)return;
   if(!confirm('Remover o PDF desta atividade?'))return;
-  const lixo=tok&&pronto&&confirm('Mandar também o arquivo para a lixeira do Drive?\n\nOK = mandar para a lixeira\nCancelar = manter o arquivo no Drive');
-  const f=i.pdf.id;i.pdf=null;save();lista();
-  if(lixo)await trashPdf(f);
+  const lixo=user&&confirm('Mandar também o arquivo para a lixeira do servidor?');
+  const path=i.pdf.id;
+  i.pdf=null;save();lista();
+  if(lixo)await trashPdf(path);
 }
 function editItem(id){
   const i=S.itens.find(x=>x.id===id); if(!i) return;
@@ -982,13 +1088,13 @@ function salvarItem(id){
 async function delItem(id){
   const i=S.itens.find(x=>x.id===id);if(!i)return;
   if(!confirm('Apagar esta atividade?'))return;
-  const lixo=(i.pdf||i.imagens.length)&&tok&&pronto&&confirm('Mandar também os arquivos (PDF/Imagens) para a lixeira do Drive?');
-  const fids = [];
-  if(i.pdf) fids.push(i.pdf.id);
-  if(i.imagens) i.imagens.forEach(img => fids.push(img.id));
+  const lixo=(i.pdf||i.imagens.length)&&user&&confirm('Mandar também os arquivos (PDF/Imagens) para a lixeira do servidor?');
+  const paths = [];
+  if(i.pdf) paths.push(i.pdf.id);
+  if(i.imagens) i.imagens.forEach(img => { if(img.id) paths.push(img.id); });
   
   S.itens=S.itens.filter(x=>x.id!==id);save();lista();
-  if(lixo) { for(let f of fids) await trashPdf(f); }
+  if(lixo) { for(let p of paths) await trashPdf(p); }
 }
 
 function agendarItem(itemId) {
@@ -1014,192 +1120,23 @@ function salvarRev(itemId) {
   save(); fechaM(); render(); toast('Revisões agendadas!');
 }
 
-/* ---------- GOOGLE DRIVE ---------- */
-const CID='9771256176-euuvbk32c7lefjb79bkpvmo8shhcvo2d.apps.googleusercontent.com';
-const cid=()=>CID;
-function setMsg(t){msgSync=t;document.querySelectorAll('.sy').forEach(e=>e.textContent=t)}
-function drv(url,opt){
-  opt=opt||{};opt.headers=Object.assign({Authorization:'Bearer '+tok},opt.headers||{});
-  return fetch(url,opt).then(r=>{
-    if(r.status===401){tok=null;pronto=false;expira=0;setMsg(RECON)}
-    if(!r.ok)throw new Error('HTTP '+r.status);
-    return r;
-  });
-}
-function conectar(modo,troca){
-  if(!window.google||!google.accounts){if(modo==='manual')toast('O login do Google não carregou. Abra o app pelo endereço https:// (hospedado) e com internet.');return}
-  if(modo!=='manual'){if(conectando||Date.now()-ultTent<60000)return;ultTent=Date.now()}
-  if(troca){localStorage.removeItem('estudos_hint');fid=null;pronto=false}
-  conectando=true;setTimeout(()=>{conectando=false},20000);
-  const hint=localStorage.getItem('estudos_hint')||'';
-  const tc=google.accounts.oauth2.initTokenClient({
-    client_id:cid(),scope:SCOPE,
-    callback:async r=>{
-      conectando=false;
-      if(r.error){setMsg(modo==='manual'?'Drive: não conectou ('+r.error+')':RECON);return}
-      tok=r.access_token;expira=Date.now()+(+r.expires_in||3600)*1000;localStorage.setItem('estudos_drive','1');
-      if(!hint){try{const u=await (await drv('https://www.googleapis.com/drive/v3/about?fields=user(emailAddress)')).json();if(u.user&&u.user.emailAddress)localStorage.setItem('estudos_hint',u.user.emailAddress)}catch(e){}}
-      puxar();
-    },
-    error_callback:()=>{conectando=false;if(modo==='manual')toast('Login cancelado ou bloqueado pelo navegador');else setMsg(RECON)}
-  });
-  const ov={prompt:modo==='auto'?'none':(hint?'':'select_account')};if(hint)ov.hint=hint;
-  tc.requestAccessToken(ov);
-}
-function desconectar(){tok=null;fid=null;pronto=false;sujo=false;expira=0;localStorage.removeItem('estudos_drive');localStorage.removeItem('estudos_hint');setMsg('Drive: desconectado')}
-async function puxar(quiet){
-  if(!quiet)setMsg('Drive: sincronizando…');
-  try{
-    const q=encodeURIComponent("name='"+NOME+"' and trashed=false");
-    const l=await (await drv('https://www.googleapis.com/drive/v3/files?q='+q+'&fields=files(id)&pageSize=1')).json();
-    const base=+localStorage.getItem(BASE)||0;
-    if(!l.files||!l.files.length){fid=null;pronto=true;await subir();return}
-    fid=l.files[0].id;
-    const rem=await (await drv('https://www.googleapis.com/drive/v3/files/'+fid+'?alt=media')).json();
-    if(!rem||!Array.isArray(rem.materias)||!Array.isArray(rem.itens))throw new Error('arquivo do Drive inválido');
-    const ra=+rem.atualizado||0,rc=ra>base,lc=(S.atualizado||0)>base;
-    let usar=rc&&!lc;
-    if(rc&&lc){if(quiet)return;usar=confirm('O Drive e este aparelho têm alterações diferentes.\n\nOK = usar os dados do Drive (descarta os daqui)\nCancelar = manter os daqui (sobrescreve o Drive)')}
-    if(usar){const t=S.timer;S=norm(rem);S.timer=t;sujo=false;gravaLocal();localStorage.setItem(BASE,String(ra));pronto=true;render();setMsg('Drive: dados carregados ✔');return}
-    pronto=true;
-    if(lc)await subir();else if(!quiet)setMsg('Drive: sincronizado ✔');
-  }catch(e){if(tok)setMsg('Drive: erro ao sincronizar ('+e.message+')')}
-}
-async function subir(){
-  if(!tok||!pronto)return;
-  if(subindo){pend=true;return}
-  subindo=true;setMsg('Drive: salvando…');
-  const d=clone(S);d.timer=null;const body=JSON.stringify(d);
-  try{
-    if(!fid){
-      const b='estudosfronteira';
-      const r=await drv('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',{method:'POST',headers:{'Content-Type':'multipart/related; boundary='+b},body:'--'+b+'\r\nContent-Type: application/json\r\n\r\n'+JSON.stringify({name:NOME,mimeType:'application/json'})+'\r\n--'+b+'\r\nContent-Type: application/json\r\n\r\n'+body+'\r\n--'+b+'--'});
-      fid=(await r.json()).id;
-    }else{
-      try{
-        await drv('https://www.googleapis.com/upload/drive/v3/files/'+fid+'?uploadType=media',{method:'PATCH',headers:{'Content-Type':'application/json'},body:body});
-      }catch(e){
-        if(/HTTP 404/.test(e.message)){
-          fid=null;subindo=false;setMsg('Drive: arquivo sumiu, recriando…');return subir();
-        }
-        throw e;
-      }
-    }
-    localStorage.setItem(BASE,String(d.atualizado));sujo=S.atualizado>d.atualizado;setMsg('Drive: sincronizado ✔');
-  }catch(e){if(tok)setMsg('Drive: falha ao salvar (tento de novo na próxima alteração)')}
-  subindo=false;if(pend){pend=false;subir()}
-}
-async function pasta(nome,pai,chave){
-  const ex=S.pastas[chave];
-  if(ex){try{const r=await (await drv('https://www.googleapis.com/drive/v3/files/'+ex+'?fields=id,trashed')).json();if(r&&!r.trashed)return ex}catch(e){if(!tok)throw e}}
-  const q="name='"+nome.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+"' and mimeType='application/vnd.google-apps.folder' and trashed=false"+(pai?" and '"+pai+"' in parents":'');
-  const l=await (await drv('https://www.googleapis.com/drive/v3/files?q='+encodeURIComponent(q)+'&fields=files(id)&pageSize=1')).json();
-  let id=l.files&&l.files[0]&&l.files[0].id;
-  if(!id){
-    const r=await drv('https://www.googleapis.com/drive/v3/files?fields=id',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:nome,mimeType:'application/vnd.google-apps.folder',parents:pai?[pai]:undefined})});
-    id=(await r.json()).id;
-  }
-  S.pastas[chave]=id;save();return id;
-}
-async function enviarArquivo(file,m){
-  if(!tok||!pronto)throw new Error('conecte ao Drive em Config');
-  if(file.size>150*1048576)throw new Error('o arquivo passa de 150 MB');
-  const raiz=await pasta('Controle de Estudos',null,'raiz'),pa=await pasta(m.nome,raiz,m.id);
-  const meta=JSON.stringify({name:file.name,parents:[pa],mimeType:file.type||'application/octet-stream'});
-  let r;
-  if(file.size<=4.5*1048576){
-    const b='estudosfronteirafile';
-    r=await drv('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id',{method:'POST',headers:{'Content-Type':'multipart/related; boundary='+b},body:new Blob(['--'+b+'\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n'+meta+'\r\n--'+b+'\r\nContent-Type: '+(file.type||'application/octet-stream')+'\r\n\r\n',file,'\r\n--'+b+'--'])});
-  }else{
-    const ini=await drv('https://www.googleapis.com/upload/drive/v3/files?uploadType=resumable&fields=id',{method:'POST',headers:{'Content-Type':'application/json; charset=UTF-8','X-Upload-Content-Type':file.type||'application/octet-stream'},body:meta});
-    const loc=ini.headers.get('Location');if(!loc)throw new Error('o Drive não devolveu o endereço de envio');
-    r=await fetch(loc,{method:'PUT',headers:{'Content-Type':file.type||'application/octet-stream'},body:file});
-    if(!r.ok)throw new Error('HTTP '+r.status);
-  }
-  const j=await r.json();if(!j.id)throw new Error('resposta sem ID');
-  return {id:j.id,nome:file.name};
+/* ---------- IA E CONFIGURAÇÕES ---------- */
+async function enviarArquivo(file, m) {
+  if(!user) throw new Error('Sem conexão com a nuvem');
+  if (file.size > 100 * 1048576) throw new Error('Arquivo maior que 100MB');
+
+  const path = `users/${user.uid}/materias/${m.id}/${Date.now()}_${file.name.replace(/[^a-zA-Z0-9.]/g, '_')}`;
+  const storageRef = ref(storage, path);
+  
+  await uploadBytes(storageRef, file);
+  const url = await getDownloadURL(storageRef);
+  
+  return { id: storageRef.fullPath, nome: file.name, url: url };
 }
 
-function tickSync(){
-  if(!tok||!pronto||sujo||subindo||document.visibilityState!=='visible'||Date.now()>expira-60000)return;
-  const t=document.activeElement&&document.activeElement.tagName;if(/^(INPUT|TEXTAREA|SELECT)$/.test(t||''))return;
-  puxar(true);
-}
-function initDrive(){
-  localStorage.removeItem('estudos_cid');
-  document.addEventListener('visibilitychange',()=>{
-    if(document.visibilityState!=='visible')return;
-    if(tok&&pronto&&Date.now()<expira-60000)puxar(true);
-    else if(localStorage.getItem('estudos_drive'))conectar('auto');
-  });
-  document.addEventListener('pointerdown',()=>{
-    if(!localStorage.getItem('estudos_drive')||(tok&&Date.now()<expira-300000))return;
-    conectar('tap');
-  },true);
-  setInterval(tickSync,90000);
-  if(!/^https?:$/.test(location.protocol))return;
-  const s=document.createElement('script');s.src='https://accounts.google.com/gsi/client';s.async=true;
-  s.onload=()=>{if(localStorage.getItem('estudos_drive')){setMsg('Drive: reconectando…');conectar('auto')}};
-  document.head.appendChild(s);
-}
-
-/* ---------- ATALHOS ---------- */
-document.addEventListener('keydown',e=>{
-  if(e.code!=='Space')return;
-  const tag=(document.activeElement||{}).tagName||'';
-  if(/^(INPUT|TEXTAREA|SELECT|BUTTON|A)$/.test(tag))return;
-  if(!S.timer)return;
-  e.preventDefault();
-  if(S.timer.paused)retomar();else pausar();
-});
-
-/* ---------- CONFIG / BACKUP ---------- */
-function vCfg(){
-  return '<h2>Ciclo de estudos</h2><div class="f col"><label>Horas líquidas de estudo em um ciclo<input id="ch" type="number" step="0.5" min="1" max="100" value="'+S.cfg.horas+'"></label><label>% do tempo para matérias com dificuldade (o resto vai para as tranquilas)<input id="cp" type="number" min="1" max="99" value="'+S.cfg.pctDif+'"></label><button onclick="saveCfg()">Salvar</button></div><p class="vz">O ciclo só reinicia quando todas as matérias baterem a meta. Mudar as horas nunca apaga o que você já estudou.</p>'
-   +'<h2>Google Drive</h2><p class="vz sy">'+esc(msgSync)+'</p><p class="vz" style="margin:0">ID do cliente embutido no app: '+esc(CID.slice(0,10))+'…</p><div class="f col"><div class="f"><button onclick="conectar(\'manual\')">Conectar ao Drive</button><button class="s" onclick="conectar(\'manual\',true)">Trocar de conta</button><button class="r" onclick="desconectar()">Desconectar</button></div></div><p class="vz">Salva o arquivo '+NOME+' no seu Drive a cada alteração. Funciona só com o app aberto por um endereço https://. O Google libera o acesso por 1 hora de cada vez: o app renova sozinho quando você toca em qualquer botão (uma janelinha pode piscar). Enquanto isso, as alterações ficam guardadas no aparelho e sobem na reconexão.</p>'
-   +vIACfg()
-   +'<h2>Backup manual</h2><button onclick="exp()">Exportar JSON</button> <label class="btn" style="display:inline-block;color:#fff">Importar<input type="file" accept=".json,application/json" hidden onchange="imp(event)"></label>'
-   +'<h2>Começar do zero</h2><p class="vz">Apaga matérias, atividades, revisões, horas, gráficos e XP (mantém suas horas do ciclo e a conexão com o Drive). Baixa um backup antes. Se o Drive estiver conectado, o arquivo dele também é zerado, e os outros aparelhos recebem o app vazio ao sincronizar. PDFs e imagens já enviados ficam no Drive.</p><button class="r" onclick="zerar()">Zerar tudo</button>';
-}
-function zerar(){
-  if(!confirm('Apagar TODAS as matérias, atividades, revisões, horas e XP'+(tok?' e também zerar o arquivo do Drive':'')+'?\n\nUm backup será baixado antes.'))return;
-  if(!confirm('Tem certeza? Isso não pode ser desfeito.'))return;
-  exp();
-  const cfg=S.cfg,pastas=S.pastas;
-  S=clone(DEF);S.cfg=cfg;S.pastas=pastas;
-  tab='ciclo';save();render();toast('Tudo zerado. Pode começar!');
-}
-function saveCfg(){
-  const h=+$('#ch').value,p=Math.round(+$('#cp').value);
-  if(!(h>0&&h<=100)||!(p>=1&&p<=99)){toast('Horas entre 1 e 100 e porcentagem entre 1 e 99');return}
-  S.cfg.horas=h;S.cfg.pctDif=p;const t=fechaCiclo();save();render();toast(t||'Ciclo atualizado');
-}
-function exp(){
-  const d=clone(S);d.timer=null;
-  const b=new Blob([JSON.stringify(d,null,1)],{type:'application/json'});
-  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='estudos-backup-'+hoje()+'.json';
-  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
-}
-function imp(e){
-  const f=e.target.files[0];if(!f)return;
-  const r=new FileReader();
-  r.onload=()=>{
-    try{
-      const d=JSON.parse(r.result);
-      if(!Array.isArray(d.materias)||!Array.isArray(d.itens))throw new Error();
-      if(!confirm('Substituir os dados atuais pelos do arquivo?'))return;
-      const t=S.timer;S=norm(d);S.timer=t;save();render();toast('Backup importado');
-    }catch(x){alert('Arquivo inválido.')}
-  };
-  r.readAsText(f);e.target.value='';
-}
-
-/* ---------- SIMULADOS COM IA (opcional) ---------- */
-/* As chaves de API ficam FORA de S: não entram no backup, no Drive nem em "Zerar tudo".
-   Ficam em localStorage criptografadas (AES-GCM 256) com uma chave-mestra não exportável guardada no IndexedDB. */
 const IA_LS='estudos_ia_cfg',IA_DB='estudos_ia',SIM_FORM='estudos_sim_form';
 const IA_PROV={
-  gemini:{nome:'Gemini (Google)',modelos:['gemini-3.8-flash','gemini-4-argon','gemini-3.6-flash','gemini-3.5-flash-lite'],chave:'https://aistudio.google.com/apikey'},
+  gemini:{nome:'Gemini (Google)',modelos:['gemini-3.8-flash','gemini-4-argon','gemini-3.6-flash','gemini-3.5-flash-lite','gemini-2.5-flash','gemini-1.5-flash'],chave:'https://aistudio.google.com/apikey'},
   openai:{nome:'ChatGPT (OpenAI)',modelos:['gpt-6.1-sol','gpt-6.1-terra','gpt-6-luna','gpt-6-astra'],chave:'https://platform.openai.com/api-keys'}
 };
 const NIVEL={auto:'adaptado ao aluno: mais exigente nas matérias em que ele está tranquilo, mais gradual (do básico ao intermediário) nas que ele marcou com dificuldade',facil:'fácil (conceitos e aplicações diretas)',medio:'médio (nível de prova de graduação)',dificil:'difícil (questões exigentes, com várias etapas de cálculo)'};
@@ -1530,6 +1467,76 @@ function simQRes(r,q,i){
   return '<div class="c col"><div class="row"><b class="'+simCls(n)+'">'+ic+' Questão '+(i+1)+'</b><small>'+esc(simNomeM(q.mid,r))+(q.topico?' · '+esc(q.topico):'')+' · '+(+n.toFixed(2))+' pt</small></div>'+h+'</div>';
 }
 
+/* ---------- CONFIG / BACKUP ---------- */
+function vCfg(){
+  let accHtml = '';
+  if (user) {
+    if (user.isAnonymous) {
+      accHtml = `
+        <div class="c col">
+          <small>Seus dados estão seguros neste aparelho, mas se você limpar o cache ou trocar de celular, perderá o acesso à sua conta anônima.</small>
+          <label>E-mail para vincular<input id="acc_email" type="email" placeholder="seu@email.com"></label>
+          <label>Senha (mínimo 6 caracteres)<input id="acc_pw" type="password"></label>
+          <div class="f">
+            <button onclick="vincularConta()">Criar Conta Permanente</button>
+            <button class="s" onclick="fazerLogin()">Já tenho conta (Fazer Login)</button>
+          </div>
+        </div>
+      `;
+    } else {
+      accHtml = `
+        <div class="c col ok">
+          <b>Conta vinculada e segura 🔒</b>
+          <small>Logado como: ${esc(user.email)}</small>
+          <button class="s r" onclick="sairConta()">Sair / Trocar de conta</button>
+        </div>
+      `;
+    }
+  } else {
+    accHtml = '<p class="vz">Conectando à nuvem...</p>';
+  }
+
+  return '<h2>Ciclo de estudos</h2><div class="f col"><label>Horas líquidas de estudo em um ciclo<input id="ch" type="number" step="0.5" min="1" max="100" value="'+S.cfg.horas+'"></label><label>% do tempo para matérias com dificuldade (o resto vai para as tranquilas)<input id="cp" type="number" min="1" max="99" value="'+S.cfg.pctDif+'"></label><button onclick="saveCfg()">Salvar</button></div><p class="vz">O ciclo só reinicia quando todas as matérias baterem a meta. Mudar as horas nunca apaga o que você já estudou.</p>'
+   +'<h2>Conta e Segurança</h2>' + accHtml
+   +'<h2>Nuvem (Firebase)</h2><p class="vz sy">'+esc(msgSync)+'</p><p class="vz">Seus dados são salvos de forma segura e sincronizados com o Firebase.</p>'
+   +vIACfg()
+   +'<h2>Backup manual</h2><button onclick="exp()">Exportar JSON</button> <label class="btn" style="display:inline-block;color:#fff">Importar<input type="file" accept=".json,application/json" hidden onchange="imp(event)"></label>'
+   +'<h2>Começar do zero</h2><p class="vz">Apaga matérias, atividades, revisões, horas e XP.</p><button class="r" onclick="zerar()">Zerar tudo</button>';
+}
+
+function zerar(){
+  if(!confirm('Apagar TODAS as matérias, atividades, revisões, horas e XP?\n\nUm backup será baixado antes.'))return;
+  if(!confirm('Tem certeza? Isso não pode ser desfeito.'))return;
+  exp();
+  const cfg=S.cfg;
+  S=clone(DEF);S.cfg=cfg;
+  tab='ciclo';save();render();toast('Tudo zerado. Pode começar!');
+}
+function saveCfg(){
+  const h=+$('#ch').value,p=Math.round(+$('#cp').value);
+  if(!(h>0&&h<=100)||!(p>=1&&p<=99)){toast('Horas entre 1 e 100 e porcentagem entre 1 e 99');return}
+  S.cfg.horas=h;S.cfg.pctDif=p;const t=fechaCiclo();save();render();toast(t||'Ciclo atualizado');
+}
+function exp(){
+  const d=clone(S);d.timer=null;
+  const b=new Blob([JSON.stringify(d,null,1)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='estudos-backup-'+hoje()+'.json';
+  document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+}
+function imp(e){
+  const f=e.target.files[0];if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    try{
+      const d=JSON.parse(r.result);
+      if(!Array.isArray(d.materias)||!Array.isArray(d.itens))throw new Error();
+      if(!confirm('Substituir os dados atuais pelos do arquivo?'))return;
+      const t=S.timer;S=norm(d);S.timer=t;save();render();toast('Backup importado');
+    }catch(x){alert('Arquivo inválido.')}
+  };
+  r.readAsText(f);e.target.value='';
+}
+
 /* ---------- RENDER ---------- */
 function render(){
   const h=hoje(),sq=(S.ultimoDia===h||S.ultimoDia===addD(h,-1))?S.streak:0;
@@ -1565,7 +1572,20 @@ function render(){
     }
   }
 }
-render();initDrive();
+
+// Expor funções necessárias para o escopo global
+window.toggleTheme = toggleTheme;
+window.go = go;
+window.vincularConta = vincularConta;
+window.fazerLogin = fazerLogin;
+window.sairConta = sairConta;
+window.saveCfg = saveCfg;
+window.exp = exp;
+window.imp = imp;
+window.zerar = zerar;
+
+render();
+initFirebase();
 </script>
 </body>
 </html>
