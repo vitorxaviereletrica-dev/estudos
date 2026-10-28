@@ -318,10 +318,12 @@ async function initFirebase() {
             S = remote;
             gravaLocal();
             setMsg('Nuvem: dados carregados ✔');
-          } else if (S.atualizado > remote.atualizado) {
-            await setDoc(doc(db, "estudos", user.uid), S);
-            setMsg('Nuvem: dados locais enviados ✔');
-          }
+                      } else if (S.atualizado > remote.atualizado) {
+              await setDoc(doc(db, "estudos", user.uid), S);
+              setMsg('Nuvem: dados locais enviados ✔');
+            } else {
+              setMsg('Nuvem: sincronizado ✔'); // <--- Adicione esta linha
+            }
         } else {
           await setDoc(doc(db, "estudos", user.uid), S);
           setMsg('Nuvem: backup criado ✔');
