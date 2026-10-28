@@ -152,6 +152,19 @@ nav.n7 button{gap:0}nav.n7 button span{display:block;max-width:100%;overflow:hid
   nav{bottom:calc(8px + env(safe-area-inset-bottom));padding:4px}
   nav button{font-size:.65rem;padding:6px 1px;line-height:1.2}
 }
+
+/* Ajustes: contraste no modo escuro + navegação com 7 abas */
+html:root:not(#_z) nav button{color:var(--mut);background:none}
+html:root:not(#_z) nav button:hover{color:var(--ink);background:color-mix(in srgb,var(--bl) 8%,transparent)}
+html:root:not(#_z) nav button.on{background:var(--bl);color:var(--card)}
+html:root:not(#_z) .cal button{color:var(--ink)}
+html:root:not(#_z) .cal button.sl{color:var(--card)}
+html:root:not(#_z) button.s{color:var(--bl)}html:root:not(#_z) button.s:hover{color:var(--card)}
+html:root:not(#_z) .ck,html:root:not(#_z) .alt{color:var(--ink)}
+nav{width:min(780px,calc(100% - 20px))}
+nav button{font-size:.74rem;letter-spacing:.1px}
+nav.n7 button span:first-child{font-size:1rem;line-height:1.2}
+@media(max-width:520px){nav button{font-size:.62rem}nav.n7 button span:first-child{font-size:.95rem}}
 </style>
 </head>
 <body>
