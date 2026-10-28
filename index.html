@@ -963,7 +963,7 @@ function renderItem(i) {
   const m = mat(i.mid) || {nome:'?'};
   const lk = /^https?:\/\//i.test(i.link||'') ? ` · <a href="${esc(i.link)}" target="_blank" rel="noopener">abrir link</a>` : '';
   
-  const pl = i.pdf && i.pdf.url ? `<small><a href="${i.pdf.url}" target="_blank" rel="noopener">📄 ${esc(i.pdf.nome)}</a></small>` : '';
+  const pl = i.pdf ? `<small><a href="${i.pdf.url || 'https://drive.google.com/file/d/'+i.pdf.id+'/view'}" target="_blank" rel="noopener">📄 ${esc(i.pdf.nome)}</a></small>` : '';
   
   let imgsHtml = '';
   if (i.imagens && i.imagens.length) {
