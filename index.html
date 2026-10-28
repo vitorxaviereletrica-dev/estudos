@@ -254,8 +254,14 @@ function norm(r){
     if(!Array.isArray(i.imagens))i.imagens=[];
     i.imagens = i.imagens.filter(img => img && (img.url || /^[\w-]+$/.test(img.id)));
   });
-  if(!Array.isArray(d.simulados))d.simulados=[];
-  d.simulados=d.simulados.filter(x=>x&&Array.isArray(x.questoes)&&Array.isArray(x.notas)&&Array.isArray(x.mids));
+  
+  if(!Array.isArray(d.simulados)) d.simulados=[];
+  d.simulados.forEach(x => {
+    if (x && !Array.isArray(x.mids)) x.mids = [];
+    if (x && !Array.isArray(x.nomes)) x.nomes = [];
+  });
+  d.simulados=d.simulados.filter(x=>x&&Array.isArray(x.questoes)&&Array.isArray(x.notas));
+  
   if(!d.simAtual||!Array.isArray(d.simAtual.questoes)||!Array.isArray(d.simAtual.resp))d.simAtual=null;
   const h=+d.cfg.horas;d.cfg.horas=h>0&&h<=100?h:10;
   const p=+d.cfg.pctDif;d.cfg.pctDif=p>=1&&p<=99?p:80;
@@ -292,7 +298,15 @@ function save(){
       localChanged=false;
     } catch(e) {
       console.error(e);
-      setMsg('Nuvem: falha ao salvar');
+      if (e.message && e.message.includes('exceeds the maximum allowed size')) {
+        S.simulados = S.simulados.slice(0, 5);
+        const dataToSave = clone(S);
+        dataToSave.timer = null;
+        await setDoc(doc(db, "estudos", user.uid), dataToSave);
+        setMsg('Nuvem: sincronizado ✔ (histórico otimizado)');
+      } else {
+        setMsg('Nuvem: falha ao salvar');
+      }
     }
   }, 1500);
 }
@@ -302,7 +316,12 @@ const nivelXP=()=>Math.floor(S.xp/100)+1;
 function toast(t){const e=$('#toast');e.textContent=t;e.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>e.style.display='none',3200)}
 function ganha(g){const a=nivelXP();S.xp+=g;const up=nivelXP()>a;if(up)fogos();return (g?'+'+g+' XP':'Tempo salvo')+(up?' · NÍVEL '+nivelXP()+'! 🎉':'')}
 function streak(){const h=hoje();if(S.ultimoDia===h)return;S.streak=S.ultimoDia===addD(h,-1)?S.streak+1:1;S.ultimoDia=h}
-function go(k){tab=k;if(k!=='acervo'){pendingImages=[];pendingPdf=null;}render()}
+function go(k){
+  tab=k;
+  if(k!=='acervo'){pendingImages=[];pendingPdf=null;}
+  if(k==='sim' && !S.simAtual) { simVer = null; }
+  render();
+}
 
 /* ---------- INICIALIZAÇÃO FIREBASE E CONTAS ---------- */
 async function initFirebase() {
@@ -318,12 +337,12 @@ async function initFirebase() {
             S = remote;
             gravaLocal();
             setMsg('Nuvem: dados carregados ✔');
-                      } else if (S.atualizado > remote.atualizado) {
-              await setDoc(doc(db, "estudos", user.uid), S);
-              setMsg('Nuvem: dados locais enviados ✔');
-            } else {
-              setMsg('Nuvem: sincronizado ✔'); // <--- Adicione esta linha
-            }
+          } else if (S.atualizado > remote.atualizado) {
+            await setDoc(doc(db, "estudos", user.uid), S);
+            setMsg('Nuvem: dados locais enviados ✔');
+          } else {
+            setMsg('Nuvem: sincronizado ✔');
+          }
         } else {
           await setDoc(doc(db, "estudos", user.uid), S);
           setMsg('Nuvem: backup criado ✔');
@@ -335,7 +354,6 @@ async function initFirebase() {
       }
       render();
     } else {
-      // Sem usuário logado, tenta entrar anonimamente
       try {
         await signInAnonymously(auth);
       } catch (e) {
@@ -543,7 +561,8 @@ function revEsp(mid){
   revItens();
 }
 function revItens(){const mid=$('#rm').value;$('#ri').innerHTML='<option value="">— nenhuma —</option>'+S.itens.filter(i=>i.mid===mid).map(i=>'<option value="'+i.id+'">'+esc(i.titulo)+'</option>').join('')}
-function revAdd(){const d=$('#rx').value;if(!/^\d{4}-\d{2}-\d{2}$/.test(d)){toast('Data inválida');return}if(!revExtra.includes(d))revExtra.push(d);revExtra.sort();$('#rxl').innerHTML=revExtra.map(x=>'<span class="chip" onclick="revExtra=revExtra.filter(y=>y!==\''+x+'\');this.remove()">'+fb(x)+' ✕</span>').join('')}
+function revAdd(){const d=$('#rx').value;if(!/^\d{4}-\d{2}-\d{2}$/.test(d)){toast('Data inválida');return}if(!revExtra.includes(d))revExtra.push(d);revExtra.sort();$('#rxl').innerHTML=revExtra.map(x=>'<span class="chip" onclick="rmRevAdd(\''+x+'\')">'+fb(x)+' ✕</span>').join('')}
+function rmRevAdd(x){revExtra=revExtra.filter(y=>y!==x);$('#rxl').innerHTML=revExtra.map(y=>'<span class="chip" onclick="rmRevAdd(\''+y+'\')">'+fb(y)+' ✕</span>').join('')}
 function salvRevEsp(){
   const mid=$('#rm').value,t=Math.round(+$('#rmin').value),it=S.itens.find(i=>i.id===$('#ri').value),nota=$('#rc').value.trim();
   if(!(t>=5&&t<=600)){toast('Duração entre 5 e 600 min');return}
@@ -766,6 +785,7 @@ function vGraf(){
 }
 
 /* ---------- ACERVO ---------- */
+function setAcervoQ(v){ qAcervo = v; lista(); }
 function vAcervo(){
   if(!S.materias.length)return '<p class="vz">Cadastre uma matéria primeiro, na aba Matérias.</p><button onclick="go(\'mat\')">＋ Cadastrar matéria</button>';
   const optsM=S.materias.map(m=>'<option value="'+m.id+'">'+esc(m.nome)+(m.status==='concluida'?' (concluída)':'')+'</option>').join('');
@@ -786,7 +806,7 @@ function vAcervo(){
     +'<input type="file" id="ap" accept="application/pdf,.pdf,image/*" multiple style="display:none" onchange="handleFileSelect(event)">'
     +'<div id="paste-preview"></div>'
     +'<button onclick="addItem()" style="width:100%; display:flex; justify-content:center; padding:12px;">Salvar no acervo</button></div>'
-    +'<h2>Acervo</h2><input id="q" placeholder="Buscar..." oninput="qAcervo=this.value;lista()" value="'+esc(qAcervo)+'" style="width:100%;"><div id="lista"></div>';
+    +'<h2>Acervo</h2><input id="q" placeholder="Buscar..." oninput="setAcervoQ(this.value)" value="'+esc(qAcervo)+'" style="width:100%;"><div id="lista"></div>';
 }
 function updateTagsSelect(selectedTag) {
   const mid = $('#am') ? $('#am').value : null;
@@ -845,10 +865,11 @@ function confirmRmTag(idx) {
   toast('Tag removida');
 }
 function rmPendingImg(i) { pendingImages.splice(i,1); renderPreview(); }
+function rmPdfPendente() { pendingPdf = null; renderPreview(); }
 function renderPreview(){
   const el=$('#paste-preview');if(!el)return;
   let html='';
-  if(pendingPdf) html+='<div style="margin-bottom:6px"><small>📄 '+esc(pendingPdf.name)+' <button class="s r" onclick="pendingPdf=null;renderPreview()">✕</button></small></div>';
+  if(pendingPdf) html+='<div style="margin-bottom:6px"><small>📄 '+esc(pendingPdf.name)+' <button class="s r" onclick="rmPdfPendente()">✕</button></small></div>';
   if(pendingImages.length) html+='<div class="thumbs">'+pendingImages.map((img,i)=>'<div style="position:relative"><img src="'+img.b64+'" class="thumb"><button class="s r" style="position:absolute;top:-6px;right:-6px;padding:2px 6px;border-radius:50%" onclick="rmPendingImg('+i+')">✕</button></div>').join('')+'</div>';
   el.innerHTML=html;
 }
@@ -1056,6 +1077,7 @@ function anexar(id){
   inp.click();
 }
 async function trashPdf(path){
+  if(!path.includes('users/')) return; // Se for um ID do Google Drive antigo, não tenta apagar no Firebase
   try{
     const storageRef = ref(storage, path);
     await deleteObject(storageRef);
@@ -1092,7 +1114,7 @@ async function delItem(id){
   if(!confirm('Apagar esta atividade?'))return;
   const lixo=(i.pdf||i.imagens.length)&&user&&confirm('Mandar também os arquivos (PDF/Imagens) para a lixeira do servidor?');
   const paths = [];
-  if(i.pdf) paths.push(i.pdf.id);
+  if(i.pdf && i.pdf.id) paths.push(i.pdf.id);
   if(i.imagens) i.imagens.forEach(img => { if(img.id) paths.push(img.id); });
   
   S.itens=S.itens.filter(x=>x.id!==id);save();lista();
@@ -1303,7 +1325,7 @@ const SCH_COR={type:'object',additionalProperties:false,required:['avaliacoes','
 const simEstudou=id=>(S.estudo[id]||0)>0||Object.keys(S.hist).some(w=>(S.hist[w][id]||0)>0);
 function simErrosRecentes(mid){
   const o=[];
-  S.simulados.filter(s=>s.mids.includes(mid)).slice(0,5).forEach(s=>s.questoes.forEach((q,i)=>{if(q.mid===mid&&(s.notas[i]||0)<.5&&q.topico&&!o.includes(q.topico))o.push(q.topico)}));
+  S.simulados.filter(s=>s.mids && s.mids.includes(mid)).slice(0,5).forEach(s=>s.questoes.forEach((q,i)=>{if(q.mid===mid&&(s.notas[i]||0)<.5&&q.topico&&!o.includes(q.topico))o.push(q.topico)}));
   return o.slice(0,8);
 }
 function simContexto(m,usarAcervo){
@@ -1414,9 +1436,13 @@ function simApagar(id){if(!confirm('Apagar este simulado do histórico? O XP gan
 /* --- telas --- */
 const simCls=p=>p>=.7?'sc-ok':p>=.5?'sc-mid':'sc-bad';
 const simNomeM=(id,r)=>{const m=mat(id);if(m)return m.nome;const i=r&&r.mids?r.mids.indexOf(id):-1;return i>=0&&r.nomes&&r.nomes[i]||'?'};
+
+function simAbrir(id) { simVer = id; render(); scrollTo(0,0); }
+function simFecharErro() { simErro = ''; render(); }
+
 function vSim(){
   if(simBusy)return '<div class="c col" style="align-items:center;text-align:center;padding:30px 16px;margin-top:18px"><div class="spin"></div><b>'+esc(simBusy)+'</b><small>Costuma levar de 20 segundos a 2 minutos. Mantenha o app aberto.</small></div>';
-  const err=simErro?'<div class="c" style="border-color:var(--rd);margin-top:14px"><small class="at" style="font-weight:500">'+esc(simErro)+'</small><button class="s" onclick="simErro=\'\';render()">✕</button></div>':'';
+  const err=simErro?'<div class="c" style="border-color:var(--rd);margin-top:14px"><small class="at" style="font-weight:500">'+esc(simErro)+'</small><button class="s" onclick="simFecharErro()">✕</button></div>':'';
   if(S.simAtual)return err+vSimProva();
   if(simVer){const r=S.simulados.find(s=>s.id===simVer);if(r)return err+vSimRes(r);simVer=null}
   return err+vSimNovo();
@@ -1428,7 +1454,7 @@ function vSimNovo(){
   const pv=iaProvs(),c=iaCfg(),prov=pv.includes(f.prov)?f.prov:pv.includes(c.prov)?c.prov:pv[0];
   let sel=Array.isArray(f.mids)&&f.mids.some(id=>mat(id))?f.mids:ms.filter(m=>simEstudou(m.id)).map(m=>m.id);if(!sel.length)sel=ms.map(m=>m.id);
   const opt=(v,l,cur)=>'<option value="'+v+'"'+(String(cur)===String(v)?' selected':'')+'>'+l+'</option>';
-  const hist=S.simulados.length?'<h2>Histórico</h2>'+S.simulados.map(r=>'<div class="c" onclick="simVer=\''+r.id+'\';render();scrollTo(0,0)" style="cursor:pointer"><div style="min-width:0"><b>'+esc(r.titulo)+'</b><br><small>'+fb(r.data)+' · '+r.questoes.length+' questões · '+esc(r.mids.map(id=>simNomeM(id,r)).join(', '))+'</small></div><div style="text-align:right;flex:0 0 auto"><b class="'+simCls(r.pct)+'">'+Math.round(r.pct*100)+'%</b><br><small>+'+r.xp+' XP</small></div></div>').join(''):'';
+  const hist=S.simulados.length?'<h2>Histórico</h2>'+S.simulados.map(r=>'<div class="c" onclick="simAbrir(\''+r.id+'\')" style="cursor:pointer"><div style="min-width:0"><b>'+esc(r.titulo)+'</b><br><small>'+fb(r.data)+' · '+r.questoes.length+' questões · '+esc((r.mids || []).map(id=>simNomeM(id,r)).join(', '))+'</small></div><div style="text-align:right;flex:0 0 auto"><b class="'+simCls(r.pct)+'">'+Math.round(r.pct*100)+'%</b><br><small>+'+r.xp+' XP</small></div></div>').join(''):'';
   return '<h2>Novo simulado</h2><div class="c col">'
    +'<small>Matérias</small><div class="cks">'+ms.map(m=>'<label class="ck"><input type="checkbox" class="simm" value="'+m.id+'"'+(sel.includes(m.id)?' checked':'')+'> '+esc(m.nome)+(simEstudou(m.id)?'':' <small>(ainda sem estudo)</small>')+'</label>').join('')+'</div>'
    +'<div class="f"><label style="flex:1 1 90px">Questões<select id="sn">'+[5,10,15,20].map(x=>opt(x,x,f.n||10)).join('')+'</select></label>'
@@ -1454,11 +1480,11 @@ function vSimProva(){
 function vSimRes(r){
   const p=Math.round(r.pct*100),pts=r.notas.reduce((a,b)=>a+b,0),porM={};
   r.questoes.forEach((q,i)=>{const x=porM[q.mid]=porM[q.mid]||{t:0,p:0,er:0};x.t++;x.p+=r.notas[i];if(r.notas[i]<.5)x.er++});
-  return '<div class="row" style="justify-content:space-between;margin-top:14px"><button class="s" onclick="simVer=null;render()">‹ Simulados</button><small>'+fb(r.data)+' · '+hm(r.dur)+' · '+esc(r.model)+'</small></div>'
+  return '<div class="row" style="justify-content:space-between;margin-top:14px"><button class="s" onclick="go(\'sim\')">‹ Simulados</button><small>'+fb(r.data)+' · '+hm(r.dur)+' · '+esc(r.model)+'</small></div>'
    +'<div class="c col" style="align-items:center;text-align:center"><b class="score '+simCls(r.pct)+'">'+p+'%</b><small>'+(+pts.toFixed(2))+' de '+r.questoes.length+' pontos · +'+r.xp+' XP</small><div class="cm" style="text-align:left;width:100%">'+esc(r.resumo)+'</div></div>'
    +'<div class="dl">'+Object.keys(porM).map(k=>{const x=porM[k],m=mat(k);return '<div><span>'+esc(simNomeM(k,r))+'</span><b class="'+simCls(x.p/x.t)+'">'+Math.round(x.p/x.t*100)+'%</b>'+(m&&x.er&&m.status==='andamento'?'<button class="s" onclick="simRevisar(\''+r.id+'\',\''+k+'\')">📅 Revisar erros</button>':'')+'</div>'}).join('')+'</div>'
    +'<h2>Gabarito comentado</h2>'+r.questoes.map((q,i)=>simQRes(r,q,i)).join('')
-   +'<div class="f" style="margin:14px 0"><button onclick="simVer=null;render();scrollTo(0,0)" style="flex:1">✨ Novo simulado</button><button class="s r" onclick="simApagar(\''+r.id+'\')">Apagar do histórico</button></div>';
+   +'<div class="f" style="margin:14px 0"><button onclick="go(\'sim\')" style="flex:1">✨ Novo simulado</button><button class="s r" onclick="simApagar(\''+r.id+'\')">Apagar do histórico</button></div>';
 }
 function simQRes(r,q,i){
   const n=r.notas[i]||0,ic=n>=1?'✔':n>0?'◐':'✘';
@@ -1575,30 +1601,18 @@ function render(){
   }
 }
 
-// Expor funções necessárias para o escopo global
-window.toggleTheme = toggleTheme;
-window.go = go;
-window.vincularConta = vincularConta;
-window.fazerLogin = fazerLogin;
-window.sairConta = sairConta;
-window.saveCfg = saveCfg;
-window.exp = exp;
-window.imp = imp;
-window.zerar = zerar;
-
 // === LIBERANDO AS FUNÇÕES PARA OS BOTÕES DO HTML ===
 Object.assign(window, {
   toggleTheme, go, vincularConta, fazerLogin, sairConta, saveCfg, exp, imp, zerar,
   selDia, mesNav, agendar, feito, delAg, iniciar, pausar, retomar, parar, tempoManual,
   revEsp, reavaliar, mudaDif, editMat, setSt, delMat, addMat, updateTagsSelect,
-  addTagPrompt, rmTagUI, confirmRmTag, handleFileSelect, renderPreview, rmPendingImg,
+  addTagPrompt, rmTagUI, handleFileSelect, renderPreview, rmPendingImg, rmPdfPendente,
   addItem, anexar, rmPdf, editItem, salvarItem, delItem, agendarItem, salvarRev,
-  toggleFolder, verDia, revItens, revAdd, salvRevEsp, fechaM, simGerar, simResp,
+  toggleFolder, verDia, revItens, revAdd, rmRevAdd, salvRevEsp, fechaM, simGerar, simResp,
   simDescartar, simCorrigir, simRevisar, simApagar, iaTrocaProv, iaSalvar, iaRemover,
-  iaTestar
+  iaTestar, setAcervoQ, lista, simAbrir, simFecharErro, confirmRmTag, salvaEditMat
 });
 
-render(); initFirebase();
 render();
 initFirebase();
 </script>
