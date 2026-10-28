@@ -1586,6 +1586,19 @@ window.exp = exp;
 window.imp = imp;
 window.zerar = zerar;
 
+// === LIBERANDO AS FUNÇÕES PARA OS BOTÕES DO HTML ===
+Object.assign(window, {
+  toggleTheme, go, vincularConta, fazerLogin, sairConta, saveCfg, exp, imp, zerar,
+  selDia, mesNav, agendar, feito, delAg, iniciar, pausar, retomar, parar, tempoManual,
+  revEsp, reavaliar, mudaDif, editMat, setSt, delMat, addMat, updateTagsSelect,
+  addTagPrompt, rmTagUI, confirmRmTag, handleFileSelect, renderPreview, rmPendingImg,
+  addItem, anexar, rmPdf, editItem, salvarItem, delItem, agendarItem, salvarRev,
+  toggleFolder, verDia, revItens, revAdd, salvRevEsp, fechaM, simGerar, simResp,
+  simDescartar, simCorrigir, simRevisar, simApagar, iaTrocaProv, iaSalvar, iaRemover,
+  iaTestar
+});
+
+render(); initFirebase();
 render();
 initFirebase();
 </script>
